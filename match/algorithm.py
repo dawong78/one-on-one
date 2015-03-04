@@ -1,3 +1,5 @@
+from match.models import *
+
 class Algorithm:
     
     @staticmethod
@@ -14,6 +16,7 @@ class Algorithm:
         r = 0
         while not success and r < len(roots):
             success = findPath(g, roots[r], path)
+            r = r + 1
 
         return path
 
@@ -100,8 +103,8 @@ class Algorithm:
 
 class NeighborComparator:
 
-    state
-    node
+    state = None
+    node = None
 
     def __init__(self, state, node):
         self.state = state
@@ -117,7 +120,7 @@ class NeighborComparator:
 
 class NodeWeightComparator:
 
-    state
+    state = None
 
     def __init__(self, state):
         self.state = state
@@ -129,10 +132,10 @@ class NodeWeightComparator:
 
 class Matcher:
 
-    model
+    model = None
 
     def __init__(self):
-        __init__(self, Model())
+        self.__init__(Model())
 
     def __init__(self, model):
         self.model = model
@@ -140,13 +143,13 @@ class Matcher:
     # Pairs up people.  If there are odd people, the odd person is matched
     # with the best pair.
     # @param offset The iteration to calculate
-    # @return Results
+    # @return MatchResults
     def match(self, offset):
-        match(self, offset, None)
+        return self.match(offset, None)
 
     # @param offset int
     # @param state State
-    # @return Results
+    # @return MatchResults
     def match(self, offset, state):
         if state == None:
             state = State(self.model.get_people_count())
@@ -170,7 +173,7 @@ class Matcher:
                     state.crowded(self.model.index_of(unmatched),
                                   self.model.index_of(unmatchedPair.getPerson1()),
                                   self.model.index_of(unmatchedPair.getPerson2()))
-        return Results(matches, unmatched, unmatchedPair, state)
+        return MatchResults(matches, unmatched, unmatchedPair, state)
 
     def match(self, state):
         # create the graph that represents the relationships --

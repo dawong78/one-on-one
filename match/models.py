@@ -149,3 +149,23 @@ class Model:
         if excluded != None:
             return excludedPerson in excluded
         return False;
+
+class MatchResults:
+    pairs = None
+    unmatched = None
+    unmatchedPair = None
+    state = None
+
+    def __init__(self):
+        self.__init__(None, None, None, None)
+
+    def __init__(self, pairs, unmatched, unmatchedPair, state):
+        self.pairs = pairs
+        self.unmatched = unmatched
+        self.unmatchedPair = unmatchedPair
+        self.state = state
+
+    def __str__(self):
+        return "pairs={pairs}, unmatched={unmatched}, \
+                unmatchedPair={unmatchedPair}, state={state}"
+    
