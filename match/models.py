@@ -1,4 +1,5 @@
 from django.db import models
+from itertools import repeat
 
 # Create your models here.
 
@@ -45,3 +46,49 @@ class Match(models.Model):
         else:
             return "%s, %s"%(self.person1.name, self.person2.name)
     
+
+class Graph:
+    size = 0
+    edges = []
+
+    def __init__(self, size):
+        self.size = size
+        self.edges = []
+        for i in range(size):
+            self.edges.append(list(repeat(0, size)))
+            
+    def is_valid_node(self, n):
+        if n >= self.size:
+            raise Exception("Illegal node id {n}.  Size is {size}")
+
+    def add_edge(self, n1, n2):
+        self.is_valid_node(n1)
+        self.is_valid_node(n2)
+        if n1 == n2:
+            raise Exception("Illegal assignment: x n1 == n2")
+        # bidirectional
+        self.edges[n1][n2] = 1
+        self.edges[n2][n1] = 1
+
+    def remove_edge(self, n1, n2):
+        self.is_valid_node(n1)
+        self.is_valid_node(n2)
+        if n1 == n2:
+            raise Exception("Illegal assignment: x n1 == n2")
+        # bidirectional
+        self.edges[n1][n2] = 0
+        self.edges[n2][n1] = 0
+
+    def is_neighbor(self, n1, n2):
+        self.is_valid_node(n1)
+        self.is_valid_node(n2)
+        return (self.edges[n1][n2] > 0)
+
+    def get_neighbors(self, n):
+        self.is_valid_node(n)
+        a = []
+        for i in range(self.size):
+            if (self.is_neighbor(n, i)):
+                a.append(i)
+        return a
+
