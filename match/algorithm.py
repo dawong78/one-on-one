@@ -1,4 +1,5 @@
 from match.models import *
+import math
 
 class Algorithm:
     
@@ -16,7 +17,7 @@ class Algorithm:
         r = 0
         while not success and r < len(roots):
             success = findPath(g, roots[r], path)
-            r = r + 1
+            r += 1
 
         return path
 
@@ -49,29 +50,26 @@ class Algorithm:
         return success
 
     @staticmethod
-    def find_pairs(g, state):
+    def get_graph_nodes(g, state):
         # init nodes
         size = g.size
         nodes = []
-        for i in len(size):
+        for i in range(size):
             nodes.append(i)
         # sort the nodes so that the ones that have been unmatched
         # are matched first
-        cmp = NodeWeightComparator(state)
-        nodes.sort(cmp.compare)
-        pairs = findPairs(g, state, nodes)
-        return pairs
+        nodes.sort(key=lambda node: state.get_unmatched_count(node))
+        return nodes
 
     @staticmethod
-    def find_pairs(g, state, nodes):
+    def find_pairs(g, state, nodes=None):
+        if nodes is None:
+            nodes = Algorithm.get_graph_nodes(g, state)
         usedNodes = []
-        numPairs = math.floor(g.size / 2)
+        numPairs = int(math.floor(g.size / 2))
         pairs = []
         for i in range(numPairs):
-            pair.append([2])
-        for i in range(numPairs):
-            for j in range(len(pairs[i])):
-                pairs[i][j] = -1
+            pairs.append(list(repeat(-1, 2)))
         pairCount = 0
         count = 0
         while pairCount < numPairs and count < (numPairs * 2):
@@ -89,108 +87,84 @@ class Algorithm:
             cmp = NeighborComparator(state, node)
             neighbors.sort(cmp.compare)
             for i in range(len(neighbors)):
-                n = neighbors.get(i)
+                n = neighbors[i]
                 if not n in usedNodes:
                     # found a match
                     pairs[pairCount][0] = node
                     pairs[pairCount][1] = n
                     usedNodes.append(node)
                     usedNodes.append(n)
-                    pairCount = pairCount + 1
+                    pairCount += 1
                     break
-            count = count + 1
+            count += 1
         return pairs
 
 class NeighborComparator:
 
-    state = None
-    node = None
-
-    def __init__(self, state, node):
+    def __init__(self, state=None, node=None):
         self.state = state
         self.node = node
 
     def compare(self, o1, o2):
         # preference given to the smallest match count
-        c = self.state.get_matched_count(self.node, o1) - self.state.get_matched_count(node, o2)
+        c = self.state.get_matched_count(self.node, o1) - self.state.get_matched_count(self.node, o2)
         if c == 0:
             # preference given to the highest unmatched count
             c = self.state.get_unmatched_count(o2) - self.state.get_unmatched_count(o1)
         return c
 
-class NodeWeightComparator:
-
-    state = None
-
-    def __init__(self, state):
-        self.state = state
-
-    def compare(self, o1, o2):
-        # preference given to the highest unmatched count
-        return self.state.get_unmatched_count(o2) - self.state.get_unmatched_count(o1)
-
-
 class Matcher:
 
-    model = None
-
-    def __init__(self):
-        self.__init__(Model())
-
-    def __init__(self, model):
+    def __init__(self, model=None):
         self.model = model
 
     # Pairs up people.  If there are odd people, the odd person is matched
     # with the best pair.
-    # @param offset The iteration to calculate
-    # @return MatchResults
-    def match(self, offset):
-        return self.match(offset, None)
-
+    #
     # @param offset int
     # @param state State
     # @return MatchResults
-    def match(self, offset, state):
+    def match(self, offset, state=None):
         if state == None:
             state = State(self.model.get_people_count())
         matches = None
-        unmatched = null
-        unmatchedPair = null
+        unmatched = None
+        unmatchedPair = None
         for i in range(offset+1):
-            matches = match(state)
-            people = self.model.people
+            matches = self.match_people(state)
+            people = self.model.people[:]
             for match in matches:
                 p1 = match.person1
                 p2 = match.person2
                 people.remove(p1)
                 people.remove(p2)
-                state.matched(self.model.index_of(p1), self.model.index_of(p2))
+                state.add_matched(self.model.index_of(p1), self.model.index_of(p2))
             if len(people) > 0:
-                unmatched = people.get(0)
-                unmatchedPair = findPair(state, matches, unmatched)
-                state.unmatched(self.model.index_of(unmatched))
-                if unmatchedPair != null:
-                    state.crowded(self.model.index_of(unmatched),
-                                  self.model.index_of(unmatchedPair.getPerson1()),
-                                  self.model.index_of(unmatchedPair.getPerson2()))
+                unmatched = people[0]
+                unmatchedPair = self.find_pair(state, matches, unmatched)
+                state.add_unmatched(self.model.index_of(unmatched))
+                if not unmatchedPair is None:
+                    state.add_crowded(self.model.index_of(unmatched),
+                                  self.model.index_of(unmatchedPair.person1),
+                                  self.model.index_of(unmatchedPair.person2))
         return MatchResults(matches, unmatched, unmatchedPair, state)
 
-    def match(self, state):
+    def match_people(self, state):
         # create the graph that represents the relationships --
         # who can be matched with who
         g = Graph(self.model.get_people_count())
         people = self.model.people
         for p1 in range(len(people)):
-            person1 = people.get(p1)
+            person1 = people[p1]
             # only need to add edges for half of graph, since graph is bidirectional
             for p2 in range(p1+1, len(people)):
-                person2 = people.get(p2)
+                person2 = people[p2]
                 # don't add relationships for people with exclusions
                 if not self.model.is_excluded(person1, person2):
-                    g.addEdge(p1, p2)
+                    g.add_edge(p1, p2)
         # calc pairs
         pairs = Algorithm.find_pairs(g, state)
-        matches = create_matches(pairs)
+        matches = self.create_matches(pairs)
         return matches
 
     # Convert graph nodes to people
@@ -200,9 +174,9 @@ class Matcher:
         matches = []
         for i in range(len(pairs)):
             if pairs[i][0] >= 0 and pairs[i][1] >= 0:
-                p1 = self.model.getPerson(pairs[i][0])
-                p2 = self.model.getPerson(pairs[i][1])
-                m = Pair(p1, p2)
+                p1 = self.model.get_person(pairs[i][0])
+                p2 = self.model.get_person(pairs[i][1])
+                m = Pair(person1=p1, person2=p2)
                 matches.append(m)
         return matches
 
@@ -212,7 +186,7 @@ class Matcher:
     # @param state
     # @param pairs
     # @param p
-    # @return may return null if no suitable pair could be found
+    # @return may return None if no suitable pair could be found
     def find_pair(self, state, pairs, unmatched):
         bestCrowdScore = 99999
         bestMatchScore = 99999
