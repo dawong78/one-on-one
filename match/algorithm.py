@@ -12,11 +12,11 @@ class Algorithm:
         roots = [size]
         for i in range(size):
             roots[i] = i
-        roots = shuffle(roots)
+        roots = Algorithm.shuffle(roots)
         success = False
         r = 0
         while not success and r < len(roots):
-            success = findPath(g, roots[r], path)
+            success = Algorithm.findPath(g, roots[r], path)
             r += 1
 
         return path
@@ -42,7 +42,7 @@ class Algorithm:
         success = False
         for neighbor in neighbors:
             if not neighbor in path:
-                success = find_path(g, neighbor, path)
+                success = Algorithm.find_path(g, neighbor, path)
                 if success:
                     break
         if not success:
@@ -145,8 +145,8 @@ class Matcher:
                 state.add_unmatched(self.model.index_of(unmatched))
                 if not unmatchedPair is None:
                     state.add_crowded(self.model.index_of(unmatched),
-                                  self.model.index_of(unmatchedPair.person1),
-                                  self.model.index_of(unmatchedPair.person2))
+                            self.model.index_of(unmatchedPair.person1),
+                            self.model.index_of(unmatchedPair.person2))
         return MatchResults(matches, unmatched, unmatchedPair, state)
 
     def match_people(self, state):
@@ -212,3 +212,66 @@ class Matcher:
                         bestCrowdScore = crowdScore
                         bestMatchScore = matchScore
 		return bestPair
+
+
+class DbUtility:
+
+    @staticmethod
+    def to_state(people, pairStates, peopleStates):
+        state = State(len(people))
+        for pairState in pairStates:
+            index1 = people.index(pairState.getPerson1())
+            index2 = people.index(pairState.getPerson2())
+            state.set_matched(index1, index2, pairState.match_count)
+        for personState in peopleStates:
+                index = people.index(personState.person)
+                state.set_unmatched(index, personState.unmatched_count)
+                state.set_crowded(index, personState.crowd_count)
+        return state
+
+    @staticmethod
+    def to_states(people, state):
+        pairStates = []
+        peopleStates = []
+        for i in len(people)-1:
+            p1 = people[i]
+            for j in range(i+1, len(people)):
+                p2 = people[j]
+                pairState = PairState();
+                pairState.person1 = p1
+                pairState.person2 = p2
+                pairState.set_match_count(state.get_matched_count(i, j))
+                pairStates.append(pairState)
+        for i in range(len(people)):
+            p = people[i]
+            personState = PersonState()
+            personState.person = p
+            personState.set_uunmatch_count(state.get_unmatched_count(i))
+            personState.set_crowd_count(state.get_crowded_count(i))
+            peopleStates.append(personState)
+        return (pairStates, peopleStates)
+    
+    @staticmethod
+    def to_match_results(result):
+        """Convert Result from database to MatchResult"""
+        results = MatchResults()
+        if not result is None:
+            matches = []
+            unmatchedPair = None
+            unmatchedPerson = None
+            dbMatches = result.matches
+            if not dbMatches is None:
+                for dbMatch in dbMatches:
+                    p1 = dbMatch.person1
+                    p2 = dbMatch.person2
+                    p3 = dbMatch.person3
+                    pair = Pair(person1=p1, person2=p2)
+                    matches.append(pair)
+                    if not p3 is None:
+                        unmatchedPair = pair
+                        unmatchedPerson = p3
+            results.pairs = matches
+            results.unmatched_pair = unmatchedPair
+            results.unmatched = unmatchedPerson
+        return results
+
