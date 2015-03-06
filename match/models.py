@@ -1,7 +1,7 @@
 from django.db import models
 from itertools import repeat
 import logging
-from operator import attrgettter
+from operator import attrgetter
 
 # Create your models here.
 
@@ -21,7 +21,7 @@ class Pair(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=255)
     people = models.ManyToManyField(Person)
-    pairs = models.ManyToManyField(Pair)
+    exlusions = models.ManyToManyField(Pair)
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)
@@ -35,7 +35,6 @@ class PairState(models.Model):
 class Result(models.Model):
     name = models.CharField(max_length = 255)
     group = models.ForeignKey(Group)
-    matches = models.OneToMany(Match)
 
 class Match(models.Model):
     result = models.ForeignKey(Result)
@@ -232,7 +231,6 @@ class State:
             tostr += "\n"
         return tostr
 
-    
 class DataSource:
 
     log = logging.getLogger(__name__)
@@ -266,7 +264,7 @@ class DataSource:
             state = DbUtility.to_state(people, pairStates, peopleStates)
             list.state = state
         except Exception as e:
-            log.debug(e)
+            DataSource.log.debug(e)
         return list
 
     def get_list_names(self):
@@ -276,8 +274,8 @@ class DataSource:
             for group in groups:
                 results.append(group.name)
         except Exception as e:
-            log.debug(null, e);
-        return results;
+            DataSource.log.debug(null, e)
+        return results
 	
     def save_list(self, group):
         try :
@@ -290,19 +288,19 @@ class DataSource:
                 
             group.save()
         except Exception as e:
-            log.error(e)
+            DataSource.log.error(e)
 
     def has_group(self, name):
         count = 0
         try:
             count = Group.objects.filter(name = name).count()
-        catch Exception as e:
-            log.debug(e)
+        except Exception as e:
+            DataSource.log.debug(e)
         return count > 0
 
     def save_results(self, group, results, name):
         try:
-            log.debug("saving results={}".format(results))
+            DataSource.log.debug("saving results={}".format(results))
             resultList = Result.objects.filter(name = name)
             result = None
             if len(resultList) == 0:
@@ -314,7 +312,7 @@ class DataSource:
             pairs = result.pairs
             unmatchedPerson = results.get_unmatched()
             unmatchedPair = results.get_unmatched_pair()
-            if not pairs is None && len(pairs) > 0:
+            if not pairs is None and len(pairs) > 0:
                 for pair in pairs:
                     match = Match.objects.create(result=result, 
                             person1=pair.getPerson1(),
@@ -331,7 +329,7 @@ class DataSource:
             state = results.state
             sortedPeople = people[:]
             sortedPeople.sort(key=attrgetter("name"))
-            for i in range(len(sortedPeople) - 1)
+            for i in range(len(sortedPeople) - 1):
                 p1 = sortedPeople[i]
                 index1 = people.index(p1)
                 for j in range(i+1, len(sortedPeople)):
@@ -346,7 +344,7 @@ class DataSource:
                     pairState.match_count += 1
                     pairState.save()
             for i in range(len(people)):
-                Person p = people[i]
+                p = people[i]
                 personState = None
                 personStateList = PersonState.objects.filter(person = p)
                 if len(personStateList) > 0:
@@ -356,17 +354,17 @@ class DataSource:
                 personState.unmatched_count += 1
                 personState.crowd_count += 1
                 personState.save()
-            log.debug("finished saving results");
+            DataSource.log.debug("finished saving results")
         except Exception as e:
-            log.debug(e)
+            DataSource.log.debug(e)
     
     def has_results(self, name):
-        count = 0;
+        count = 0
         try:
             count = Result.objects.filter(name=name).count()
         except Exception as e:
-            log.debug(e)
-        return count > 0;
+            DataSource.log.debug(e)
+        return count > 0
 
     def get_results(self, name):
         resultList = Result.objects.filter(name = name)
@@ -374,7 +372,6 @@ class DataSource:
         if len(resultList) > 0:
             result = resultList[0]
         DbUtility.to_match_results(result)
-    }
 
     def get_result_names(self):
         names = []
@@ -385,7 +382,7 @@ class DataSource:
     def get_People(self):
         return People.objects.all()
 
-    def set_crowded_count(self, person, count) {
+    def set_crowded_count(self, person, count):
         personStateList = PersonState.objects.filter(person=person)
         personState = None
         if len(personStateList) == 0:
@@ -400,7 +397,6 @@ class DataSource:
             temp = p1
             p1 = p2
             p2 = temp
-        }
         pairStateList = PairState.objects.filter(person1=p1, person2=p2)
         pairState = None
         if len(pairStateList) == 0:
@@ -410,7 +406,7 @@ class DataSource:
         pairState.match_count = count
         pairState.save()
 
-    def set_unmatched_count(self, person, int count):
+    def set_unmatched_count(self, person, count):
         personStateList = PersonState.objects.filter(person=person)
         personState = None
         if len(personStateList) == 0:
@@ -431,7 +427,7 @@ class DataSource:
         pairState = None
         if len(pairStateList) > 0:
             pairState = pairStateList[0]
-        return pairState;
+        return pairState
 
     def get_person_state(self, person):
         personStateList = PersonState.objects.filter(person=person)
@@ -439,6 +435,5 @@ class DataSource:
         if len(personStateList) > 0:
             personState = personStateList[0]
         return personState
-    }
 
     

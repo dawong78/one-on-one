@@ -42,3 +42,18 @@ class ModelsTest(TestCase):
         self.assertTrue(r)
         r = m.is_excluded(p1, p1)
         self.assertFalse(r)
+        
+    def test_datasource_get_group(self):
+        p1 = self.create_person("name1", "email1")
+        p1.save()
+        p2 = self.create_person("name2", "email2")
+        p2.save()
+        people = [p1, p2]
+        group = Group.objects.create(name="group")
+        group.people = people
+        group.save()
+        dataSource = DataSource()
+        result = dataSource.get_group("group")
+        self.assertEquals(result, group)
+        self.assertEquals(2, len(result.people.all()))
+        
