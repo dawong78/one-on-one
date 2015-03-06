@@ -1,7 +1,9 @@
 from django.db import models
 from itertools import repeat
 import logging
-from operator import attrgetter
+from datetime import datetime
+
+log = logging.getLogger(__name__)
 
 # Create your models here.
 
@@ -12,6 +14,7 @@ class Person(models.Model):
         return "name={}, email={}".format(self.name, self.email)
     
 class Pair(models.Model):
+    group = models.ForeignKey(Group)
     person1 = models.ForeignKey(Person, related_name="first_person_pair")
     person2 = models.ForeignKey(Person, related_name="second_person_pair")
     def __str__(self):
@@ -25,6 +28,7 @@ class Group(models.Model):
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)
+    group = models.ForeignKey(Group)
     unmatched_count = models.IntegerField()
     crowd_count = models.IntegerField()
     
@@ -34,6 +38,7 @@ class PairState(models.Model):
     
 class Result(models.Model):
     name = models.CharField(max_length = 255)
+    date_created = models.DateTimeField(default=datetime.now())
     group = models.ForeignKey(Group)
 
 class Match(models.Model):
@@ -231,209 +236,3 @@ class State:
             tostr += "\n"
         return tostr
 
-class DataSource:
-
-    log = logging.getLogger(__name__)
-
-    def get_group(self, name):
-        list = None
-        try:
-            list = Group.objects.get(name=name)
-            people = list.people
-            peopleStates = []
-            airStates = []
-            sortedPeople = people[:]
-            sortedPeople.sort(key=attrgetter("name"))
-            if len(sortedPeople) > 1:
-                for i in len(sortedPeople)-1:
-                    person1 = sortedPeople[i]
-                    for j in range(i+1, len(sortedPeople)):
-                        person2 = sortedPeople[j]
-                        pairStateList = PairState.objects.filter(
-                            person1__name=person1.name,
-                            person2__name=person2.name
-                        )
-                        if len(pairStateList) > 0:
-                            pairStates.append(pairStateList[0])
-            for person in people:
-                personStateList = PersonState.objects.filter(
-                    person__name = person.name
-                )
-                if len(personStateList) > 0:
-                    peopleStates.append(personStateList[0])
-            state = DbUtility.to_state(people, pairStates, peopleStates)
-            list.state = state
-        except Exception as e:
-            DataSource.log.debug(e)
-        return list
-
-    def get_list_names(self):
-        results = []
-        try:
-            groups = Group.objects.all()
-            for group in groups:
-                results.append(group.name)
-        except Exception as e:
-            DataSource.log.debug(null, e)
-        return results
-	
-    def save_list(self, group):
-        try :
-            people = group.people
-            for person in people:
-                person.save()
-            
-            for pair in group.exclusions:
-                pair.save()
-                
-            group.save()
-        except Exception as e:
-            DataSource.log.error(e)
-
-    def has_group(self, name):
-        count = 0
-        try:
-            count = Group.objects.filter(name = name).count()
-        except Exception as e:
-            DataSource.log.debug(e)
-        return count > 0
-
-    def save_results(self, group, results, name):
-        try:
-            DataSource.log.debug("saving results={}".format(results))
-            resultList = Result.objects.filter(name = name)
-            result = None
-            if len(resultList) == 0:
-                result = Result.objects.create(name=name, group=group)
-                result.save()
-            else:
-                result = resultList[0]
-            matches = []
-            pairs = result.pairs
-            unmatchedPerson = results.get_unmatched()
-            unmatchedPair = results.get_unmatched_pair()
-            if not pairs is None and len(pairs) > 0:
-                for pair in pairs:
-                    match = Match.objects.create(result=result, 
-                            person1=pair.getPerson1(),
-                            person2=pair.getPerson2(),
-                            person3=None)
-                    if pair == unmatchedPair:
-                        match.person3 = unmatchedPerson
-                    match.save()
-                    matches.add(match)
-            result.matches = matches
-            result.save()
-
-            people = group.people
-            state = results.state
-            sortedPeople = people[:]
-            sortedPeople.sort(key=attrgetter("name"))
-            for i in range(len(sortedPeople) - 1):
-                p1 = sortedPeople[i]
-                index1 = people.index(p1)
-                for j in range(i+1, len(sortedPeople)):
-                    p2 = sortedPeople[j]
-                    index2 = people.index(p2)
-                    newMatchCount = state.get_matched_count(index1, index2)
-                    pairStateList = PairState.objects.filter(person1=p1, person2=p2)
-                    if len(pairStateList) == 0:
-                        pairState = PairState()
-                        pairState.person1 = p1
-                        pairState.person2 = p2
-                    pairState.match_count += 1
-                    pairState.save()
-            for i in range(len(people)):
-                p = people[i]
-                personState = None
-                personStateList = PersonState.objects.filter(person = p)
-                if len(personStateList) > 0:
-                    personState = personStateList[0]
-                else:
-                    personState = PersonState(person=p)
-                personState.unmatched_count += 1
-                personState.crowd_count += 1
-                personState.save()
-            DataSource.log.debug("finished saving results")
-        except Exception as e:
-            DataSource.log.debug(e)
-    
-    def has_results(self, name):
-        count = 0
-        try:
-            count = Result.objects.filter(name=name).count()
-        except Exception as e:
-            DataSource.log.debug(e)
-        return count > 0
-
-    def get_results(self, name):
-        resultList = Result.objects.filter(name = name)
-        result = None
-        if len(resultList) > 0:
-            result = resultList[0]
-        DbUtility.to_match_results(result)
-
-    def get_result_names(self):
-        names = []
-        for result in Result.objects.all():
-            names.append(result.name)
-        return names
-
-    def get_People(self):
-        return People.objects.all()
-
-    def set_crowded_count(self, person, count):
-        personStateList = PersonState.objects.filter(person=person)
-        personState = None
-        if len(personStateList) == 0:
-            personState = PersonState.objects.create(person=person)
-        else:
-            personState = personStateList[0]
-        personState.crowd_count = count
-        personState.save()
-
-    def set_matched_count(self, p1, p2, count):
-        if p1.getName() > p2.getName():
-            temp = p1
-            p1 = p2
-            p2 = temp
-        pairStateList = PairState.objects.filter(person1=p1, person2=p2)
-        pairState = None
-        if len(pairStateList) == 0:
-            pairState = PairState.objects.create(person1=p1, person2=p2)
-        else:
-            pairState = pairStateList[0]
-        pairState.match_count = count
-        pairState.save()
-
-    def set_unmatched_count(self, person, count):
-        personStateList = PersonState.objects.filter(person=person)
-        personState = None
-        if len(personStateList) == 0:
-            personState = PersonState.objects.create(person=person)
-        else:
-            personState = personStateList[0]
-        personState.unmatch_count = count
-        personState.save()
-
-    def get_pair_state(self, person1, person2):
-        # people are matched in alphabetical order in database
-        if person1.getName() > person2.getName():
-            tmp = person2
-            person2 = person1
-            person1 = tmp
-        pairStateList = PairState.objects.filter(person1=person1, 
-                person2=person2)
-        pairState = None
-        if len(pairStateList) > 0:
-            pairState = pairStateList[0]
-        return pairState
-
-    def get_person_state(self, person):
-        personStateList = PersonState.objects.filter(person=person)
-        personState = None
-        if len(personStateList) > 0:
-            personState = personStateList[0]
-        return personState
-
-    

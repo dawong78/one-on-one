@@ -7,5 +7,63 @@
     </head>
     <body>
         <div>Welcome to Matcher</div>
+        
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+        <div id="groups">
+            <h1>Groups</h1>
+            {% for group in groups %}
+                Name: {{ group.name }}
+                <form action="{% url 'match:create_group_matches'%}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="group_name" value="{{group.name}}"/>
+                    <input type="submit" value="Match"/>
+                </form>
+                Members:
+                <ol>
+                {% for person in group.people.all %}
+                <li/>{{ person }}
+                {% endfor %}
+                </ol>
+                Match-ups:
+                <ol>
+                {% if not results[group] is None %}
+                    {% for match in results[group] %}
+                        {% if match.person3 is None %}
+                        <li/>{{match.person1.name}}, {{match.person2.name}}
+                        <% else %>
+                        <li/>{{match.person1.name}}, {{match.person2.name}}, {{match.person2.name}}
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                </ol>
+            {% endfor %}
+        </div>
+        
+        <div id="create_group">
+            <h1>Create Group</h1>
+            
+            <form action="{% url 'match:create_group'%}" method="post">
+                {% csrf_token %}
+                Name <input type="text" name="name"/>
+                <input type="submit" value="Create"/>
+            </form>
+        </div>
+        
+        <div id="add_user">
+            <h1>Add User</h1>
+
+            <form action="{% url 'match:add_user'%}" method="post">
+                {% csrf_token %}
+                Name <input type="text" name="name"/>
+                Email <input type="text" name="email"/>
+                Group <select name="group">
+                    {% for group in groups %}
+                    <option name="{{group.name}}">{{group.name}}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Add"/>
+            </form>
+        </div>
     </body>
 </html>
