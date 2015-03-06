@@ -16,7 +16,7 @@
                 Name: {{ group.group.name }}
                 <form action="{% url 'match:create_group_matches'%}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="group_name" value="{{group.name}}"/>
+                    <input type="hidden" name="group_name" value="{{group.group.name}}"/>
                     <input type="submit" value="Match"/>
                 </form>
                 Members:
@@ -34,18 +34,8 @@
             {% endfor %}
         </div>
         
-        <div id="create_group">
-            <h1>Create Group</h1>
-            
-            <form action="{% url 'match:create_group'%}" method="post">
-                {% csrf_token %}
-                Name <input type="text" name="name"/>
-                <input type="submit" value="Create"/>
-            </form>
-        </div>
-        
         <div id="add_user">
-            <h1>Add User</h1>
+            <h1>Register</h1>
 
             <form action="{% url 'match:add_user'%}" method="post">
                 {% csrf_token %}
@@ -59,5 +49,16 @@
                 <input type="submit" value="Add"/>
             </form>
         </div>
+        
+        <div id="create_group">
+            <h1>Admin</h1>
+            
+            <form action="{% url 'match:create_group'%}" method="post">
+                {% csrf_token %}
+                Group <input type="text" name="name"/>
+                <input type="submit" value="Create"/>
+            </form>
+        </div>
+        
     </body>
 </html>
