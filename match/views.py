@@ -1,6 +1,8 @@
 from django.shortcuts import render
 import logging
 from models import *
+from algorithm import *
+from django.db.models import Max
 
 logger = logging.getLogger(__name__)
 
@@ -13,19 +15,22 @@ def create_context(error_message=None):
     
     groups = Group.objects.all()
     logger.debug("context groups={}".format(groups))
-    context["groups"] = groups
     
-    group_results = {}
-    context["results"] = group_results
-    
+    view_groups = []
     for group in groups:
         count = Result.objects.filter(group=group).count()
+        matches = []
         if count > 0:
             latest_date = Result.objects.filter(group=group)\
-                    .aggregate(Max("date_created"))
+                    .aggregate(Max("date_created"))["date_created__max"]
+            logger.debug("latest_date={}".format(latest_date))
             result = Result.objects.get(date_created=latest_date)
+            logger.debug("result={}".format(result))
             matches = Match.objects.filter(result=result)
-            group_results[group] = matches
+            logger.debug("matches={}".format(matches))
+        view_group = ViewGroup(group=group, matches=matches)
+        view_groups.append(view_group)
+    context["groups"] = view_groups
     return context
 
 def index(request):
@@ -84,4 +89,10 @@ def create_group(request):
 def create_group_matches(request):
     """Create new matches for a group"""
     group_name = request.POST["group_name"]
+    logger.debug("Creating matches for group {}".format(group_name))
+    controller = Controller()
+    match_results = controller.run_match(group_name)
+    logger.debug("Match results: {}".format(match_results))
+    context = create_context()
+    return render(request, "match/index.html", context)
     

@@ -13,7 +13,7 @@
         <div id="groups">
             <h1>Groups</h1>
             {% for group in groups %}
-                Name: {{ group.name }}
+                Name: {{ group.group.name }}
                 <form action="{% url 'match:create_group_matches'%}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="group_name" value="{{group.name}}"/>
@@ -21,21 +21,15 @@
                 </form>
                 Members:
                 <ol>
-                {% for person in group.people.all %}
+                {% for person in group.group.people.all %}
                 <li/>{{ person }}
                 {% endfor %}
                 </ol>
                 Match-ups:
                 <ol>
-                {% if not results[group] is None %}
-                    {% for match in results[group] %}
-                        {% if match.person3 is None %}
-                        <li/>{{match.person1.name}}, {{match.person2.name}}
-                        <% else %>
-                        <li/>{{match.person1.name}}, {{match.person2.name}}, {{match.person2.name}}
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
+                {% for match in group.matches %}
+                    <li/>{{match.person1.name}}, {{match.person2.name}}, {{match.person3.name|default_if_none:""}}
+                {% endfor %}
                 </ol>
             {% endfor %}
         </div>
@@ -59,7 +53,7 @@
                 Email <input type="text" name="email"/>
                 Group <select name="group">
                     {% for group in groups %}
-                    <option name="{{group.name}}">{{group.name}}</option>
+                    <option name="{{group.group.name}}">{{group.group.name}}</option>
                     {% endfor %}
                 </select>
                 <input type="submit" value="Add"/>

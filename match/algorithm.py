@@ -13,10 +13,10 @@ class Algorithm:
         path = []
 
         # randomize start nodes
-        size = g.getSize()
-        roots = [size]
+        size = g.size
+        roots = []
         for i in range(size):
-            roots[i] = i
+            roots.append(i)
         roots = Algorithm.shuffle(roots)
         success = False
         r = 0
@@ -220,6 +220,12 @@ class Matcher:
 
 
 class DbUtility:
+    
+    @staticmethod
+    def to_model(group):
+        model = Model()
+        model.people = list(group.people.all())
+        return model
 
     @staticmethod
     def to_state(people, pairStates, peopleStates):
@@ -286,7 +292,13 @@ class Controller:
         group = Group.objects.get(name=group_name)
         pairStates = PairState.objects.filter(pair__group=group)
         peopleStates = PersonState.objects.filter(group=group)
-        state = DbUtility.to_state(group.people.all(), pairStates, peopleStates)
+        state = DbUtility.to_state(list(group.people.all()), 
+                pairStates, peopleStates)
+        model = DbUtility.to_model(group)
+        matcher = Matcher(model)
+        matchResults = matcher.match(0, state)
+        self.save_match_results(group, matchResults)
+        return matchResults
 
     def get_group(self, name):
         group = None
@@ -353,35 +365,30 @@ class Controller:
             log.debug(e)
         return count > 0
 
-    def save_results(self, group, results, name):
+    def save_match_results(self, group, match_results):
         try:
-            log.debug("saving results={}".format(results))
-            resultList = Result.objects.filter(name = name)
-            result = None
-            if len(resultList) == 0:
-                result = Result.objects.create(name=name, group=group)
-                result.save()
-            else:
-                result = resultList[0]
+            log.debug("saving match_results={}".format(match_results))
+            result = Result.objects.create(group=group)
+            result.save()
             matches = []
-            pairs = result.pairs
-            unmatchedPerson = results.get_unmatched()
-            unmatchedPair = results.get_unmatched_pair()
+            pairs = match_results.pairs
+            unmatchedPerson = match_results.unmatched
+            unmatchedPair = match_results.unmatched_pair
             if not pairs is None and len(pairs) > 0:
                 for pair in pairs:
                     match = Match.objects.create(result=result, 
-                            person1=pair.getPerson1(),
-                            person2=pair.getPerson2(),
+                            person1=pair.person1,
+                            person2=pair.person2,
                             person3=None)
                     if pair == unmatchedPair:
                         match.person3 = unmatchedPerson
                     match.save()
-                    matches.add(match)
+                    matches.append(match)
             result.matches = matches
             result.save()
 
             people = group.people
-            state = results.state
+            state = match_results.state
             sortedPeople = people[:]
             sortedPeople.sort(key=attrgetter("name"))
             for i in range(len(sortedPeople) - 1):
@@ -422,31 +429,10 @@ class Controller:
                 personState.unmatched_count += 1
                 personState.crowd_count += 1
                 personState.save()
-            log.debug("finished saving results")
+            log.debug("finished saving match_results")
         except Exception as e:
             log.debug(e)
     
-    def has_results(self, name):
-        count = 0
-        try:
-            count = Result.objects.filter(name=name).count()
-        except Exception as e:
-            log.debug(e)
-        return count > 0
-
-    def get_results(self, name):
-        resultList = Result.objects.filter(name = name)
-        result = None
-        if len(resultList) > 0:
-            result = resultList[0]
-        DbUtility.to_match_results(result)
-
-    def get_result_names(self):
-        names = []
-        for result in Result.objects.all():
-            names.append(result.name)
-        return names
-
     def get_People(self):
         return People.objects.all()
 

@@ -13,6 +13,10 @@ class Person(models.Model):
     def __str__(self):
         return "name={}, email={}".format(self.name, self.email)
     
+class Group(models.Model):
+    name = models.CharField(max_length=255)
+    people = models.ManyToManyField(Person)
+    
 class Pair(models.Model):
     group = models.ForeignKey(Group)
     person1 = models.ForeignKey(Person, related_name="first_person_pair")
@@ -20,11 +24,6 @@ class Pair(models.Model):
     def __str__(self):
         return "person1={}, person2={}".format(self.person1.name, 
                 self.person2.name)
-    
-class Group(models.Model):
-    name = models.CharField(max_length=255)
-    people = models.ManyToManyField(Person)
-    exlusions = models.ManyToManyField(Pair)
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)
@@ -37,7 +36,6 @@ class PairState(models.Model):
     match_count = models.IntegerField()
     
 class Result(models.Model):
-    name = models.CharField(max_length = 255)
     date_created = models.DateTimeField(default=datetime.now())
     group = models.ForeignKey(Group)
 
@@ -45,9 +43,10 @@ class Match(models.Model):
     result = models.ForeignKey(Result)
     person1 = models.ForeignKey(Person, related_name="first_person_match")
     person2 = models.ForeignKey(Person, related_name="second_person_match")
-    person3 = models.ForeignKey(Person, related_name="third_person_match")
+    person3 = models.ForeignKey(Person, related_name="third_person_match", 
+            null=True)
     def __str__(self):
-        if (person3 != None):
+        if (not self.person3 is None):
             return "{}, {}, {}".format(self.person1.name, self.person2.name,
                     self.person3.name)
         else:
@@ -157,16 +156,16 @@ class Model:
 
 class MatchResults:
 
-    def __init__(self, pairs=None, unmatched=None, unmatchedPair=None, 
+    def __init__(self, pairs=None, unmatched=None, unmatched_pair=None, 
             state=None):
         self.pairs = pairs
         self.unmatched = unmatched
-        self.unmatchedPair = unmatchedPair
+        self.unmatched_pair = unmatched_pair
         self.state = state
 
     def __str__(self):
-        return "pairs={}, unmatched={}, unmatchedPair={}, state={}"\
-                .format(self.pairs, self.unmatched, self.unmatchedPair, 
+        return "pairs={}, unmatched={}, unmatched_pair={}, state={}"\
+                .format(self.pairs, self.unmatched, self.unmatched_pair, 
                 self.state)
     
     
@@ -236,3 +235,9 @@ class State:
             tostr += "\n"
         return tostr
 
+class ViewGroup:
+    """View model to display all the information of a group"""
+    
+    def __init__(self, group=None, matches=[]):
+        self.group = group
+        self.matches = matches
