@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def index(request):
     logger.info("index called")
-    error_message = request.session["error_message"]
+    error_message = request.session.get("error_message", None)
     request.session["error_message"] = None
     context = create_context(error_message)
     return render(request, "match/index.html", context)
