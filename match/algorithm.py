@@ -3,6 +3,7 @@ import math
 from itertools import repeat
 from operator import attrgetter
 import logging
+import random
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +64,7 @@ class Algorithm:
             nodes.append(i)
         # sort the nodes so that the ones that have been unmatched
         # are matched first
+        random.shuffle(nodes)
         nodes.sort(key=lambda node: state.get_unmatched_count(node))
         return nodes
 
@@ -368,7 +370,8 @@ class Controller:
     def save_match_results(self, group, match_results):
         try:
             log.debug("saving match_results={}".format(match_results))
-            result = Result.objects.create(group=group)
+            result = Result.objects.create(group=group,
+                    date_created=datetime.now())
             result.save()
             matches = []
             pairs = match_results.pairs

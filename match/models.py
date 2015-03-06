@@ -36,7 +36,7 @@ class PairState(models.Model):
     match_count = models.IntegerField()
     
 class Result(models.Model):
-    date_created = models.DateTimeField(default=datetime.now())
+    date_created = models.DateTimeField()
     group = models.ForeignKey(Group)
 
 class Match(models.Model):
