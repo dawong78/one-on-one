@@ -1,7 +1,6 @@
 from django.db import models
 from itertools import repeat
 import logging
-from datetime import datetime
 
 log = logging.getLogger(__name__)
 

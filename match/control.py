@@ -186,14 +186,14 @@ class Controller:
         personState.unmatch_count = count
         personState.save()
 
-    def get_pair_state(self, person1, person2):
+    def get_pair_state(self, group, person1, person2):
         # people are matched in alphabetical order in database
-        if person1.getName() > person2.getName():
+        if person1.name > person2.name:
             tmp = person2
             person2 = person1
             person1 = tmp
         pairStateList = PairState.objects.filter(person1=person1, 
-                person2=person2)
+                person2=person2, group = group)
         pairState = None
         if len(pairStateList) > 0:
             pairState = pairStateList[0]
@@ -205,5 +205,57 @@ class Controller:
         if len(personStateList) > 0:
             personState = personStateList[0]
         return personState
-
     
+    def incr_match_count_by_names(self, group_name, person1_name,
+            person2_name, count):
+        """Increment the number of times these people have been
+        matched in a group.
+        
+        group_name - name of group
+        person1_name - name of person
+        perosn2_name - name of person
+        """
+        group = Group.objects.get(name=group_name)
+        p1 = Person.objects.get(name=person1_name)
+        p2 = Person.objects.get(name=person2_name)
+        self.incr_match_count(group, p1, p2, count)
+
+    def incr_match_count(self, group, person1, person2, count):
+        """Increment the number of times these people have been
+        matched in a group.
+        
+        group - 
+        person1 - 
+        perosn2 - 
+        """
+        
+        # Ensure the ordering of the person
+        people = [person1, person2]
+        people.sort(key=attrgetter("name"))
+        person1 = people[0]
+        person2 = people[1]
+        
+        pairList = Pair.objects.filter(person1=person1, person2=person2,
+                group=group)
+        pair = None
+        if len(pairList) == 0:
+            # New pair
+            pair = Pair.objects.create(person1=person1, person2=person2,
+                    group = group)
+            pair.save()
+        else:
+            pair = pairList[0]
+            
+        # Get the pair state
+        pairStateList = PairState.objects.filter(pair=pair)
+        pairState = None
+        if len(pairStateList) == 0:
+            # New state
+            pairState = PairState.objects.create(pair=pair, match_count=0)
+            pairState.save()
+        else:
+            pairState = pairStateList[0]
+            
+        # Increment state
+        pairState.match_count += count
+        pairState.save()
