@@ -64,7 +64,7 @@ class Algorithm:
         # sort the nodes so that the ones that have been unmatched
         # are matched first
         random.shuffle(nodes)
-        nodes.sort(key=lambda node: state.get_unmatched_count(node))
+        nodes.sort(key=lambda node: -state.get_unmatched_count(node))
         return nodes
 
     @staticmethod
@@ -90,8 +90,16 @@ class Algorithm:
             # sort the neighbors so that neighbors who haven't been matched
             # with this node get higher priority.  Secondly, neighbors who
             # have been unmatched the most get higher priority.
-            cmp = NeighborComparator(state, node)
-            neighbors.sort(cmp.compare)
+            def neighbor_compare(neighbor):
+                match = state.get_matched_count(node, neighbor)
+                unmatch = -state.get_unmatched_count(neighbor)
+                return (match, unmatch)
+            neighbors.sort(key = neighbor_compare)
+            print "neighbors:"
+            for neigh in neighbors:
+                print "{}: match={}, unmatch={}".format(neigh,
+                        state.get_matched_count(node, neigh),
+                        state.get_unmatched_count(neigh))
             for i in range(len(neighbors)):
                 n = neighbors[i]
                 if not n in usedNodes:
@@ -104,20 +112,6 @@ class Algorithm:
                     break
             count += 1
         return pairs
-
-class NeighborComparator:
-
-    def __init__(self, state=None, node=None):
-        self.state = state
-        self.node = node
-
-    def compare(self, o1, o2):
-        # preference given to the smallest match count
-        c = self.state.get_matched_count(self.node, o1) - self.state.get_matched_count(self.node, o2)
-        if c == 0:
-            # preference given to the highest unmatched count
-            c = self.state.get_unmatched_count(o2) - self.state.get_unmatched_count(o1)
-        return c
 
 class Matcher:
 
@@ -147,7 +141,8 @@ class Matcher:
                 state.add_matched(self.model.index_of(p1), self.model.index_of(p2))
             if len(people) > 0:
                 unmatched = people[0]
-                unmatchedPair = self.find_pair(state, matches, unmatched)
+                unmatchedPair = self.find_crowd_pair(state, 
+                        matches, unmatched)
                 state.add_unmatched(self.model.index_of(unmatched))
                 if not unmatchedPair is None:
                     state.add_crowded(self.model.index_of(unmatched),
@@ -193,9 +188,11 @@ class Matcher:
     # @param pairs
     # @param p
     # @return may return None if no suitable pair could be found
-    def find_pair(self, state, pairs, unmatched):
+    def find_crowd_pair(self, state, pairs, unmatched):
+        print "find crowd pair for {}".format(unmatched)
         bestCrowdScore = 99999
         bestMatchScore = 99999
+        bestIndividualCrowdScore = 99999
         bestPair = None
         ip = self.model.index_of(unmatched)
         for pair in pairs:
@@ -204,20 +201,38 @@ class Matcher:
             if not self.model.is_excluded(unmatched, p1) and not self.model.is_excluded(unmatched, p2):
                 ip1 = self.model.index_of(p1)
                 ip2 = self.model.index_of(p2)
+                p1_crowd = state.get_crowded_count(ip1)
+                p2_crowd = state.get_crowded_count(ip2)
                 # test 1: lowest crowd score
-                crowdScore = state.get_crowded_count(ip1) + state.get_crowded_count(ip2)
+                crowdScore = p1_crowd + p2_crowd
                 # test 2: lowest match score
                 matchScore = state.get_matched_count(ip, ip1) + state.get_matched_count(ip, ip2)
+                # test 3: lowest individual crowd score
+                lowestIndiv = 0
+                if p1_crowd < p2_crowd:
+                    lowestIndiv = p1_crowd
+                else:
+                    lowestIndiv = p2_crowd
+                print "pair={}, crowd score={}, match score={}, indiv score={}".format(
+                        pair, crowdScore, matchScore, lowestIndiv)
                 if bestPair == None or crowdScore < bestCrowdScore:
                     bestPair = pair
                     bestCrowdScore = crowdScore
                     bestMatchScore = matchScore
+                    bestIndividualCrowdScore = lowestIndiv
                 elif crowdScore == bestCrowdScore:
                     if matchScore < bestMatchScore:
                         bestPair = pair
                         bestCrowdScore = crowdScore
                         bestMatchScore = matchScore
-		return bestPair
+                        bestIndividualCrowdScore = lowestIndiv
+                    else:
+                        if p1_crowd < bestIndividualCrowdScore:
+                            bestPair = pair
+                            bestCrowdScore = crowdScore
+                            bestMatchScore = matchScore
+                            bestIndividualCrowdScore = lowestIndiv
+        return bestPair
 
 
 class DbUtility:
@@ -232,13 +247,13 @@ class DbUtility:
     def to_state(people, pairStates, peopleStates):
         state = State(len(people))
         for pairState in pairStates:
-            index1 = people.index(pairState.getPerson1())
-            index2 = people.index(pairState.getPerson2())
+            index1 = people.index(pairState.pair.person1)
+            index2 = people.index(pairState.pair.person2)
             state.set_matched(index1, index2, pairState.match_count)
         for personState in peopleStates:
-                index = people.index(personState.person)
-                state.set_unmatched(index, personState.unmatched_count)
-                state.set_crowded(index, personState.crowd_count)
+            index = people.index(personState.person)
+            state.set_unmatched(index, personState.unmatched_count)
+            state.set_crowded(index, personState.crowd_count)
         return state
 
     @staticmethod

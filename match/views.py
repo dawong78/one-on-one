@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 import logging
 from models import *
+from control import Controller
 from algorithm import *
 from django.db.models import Max
 

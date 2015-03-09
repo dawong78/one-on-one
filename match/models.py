@@ -29,10 +29,15 @@ class PersonState(models.Model):
     group = models.ForeignKey(Group)
     unmatched_count = models.IntegerField()
     crowd_count = models.IntegerField()
+    def __str__(self):
+        return "person={}, unmatched={}, crowd={}".format(
+            self.person, self.unmatched_count, self.crowd_count)
     
 class PairState(models.Model):
     pair = models.ForeignKey(Pair)
     match_count = models.IntegerField()
+    def __str__(self):
+        return "pair={}, match_count={}".format(self.pair, self.match_count)
     
 class Result(models.Model):
     date_created = models.DateTimeField()
