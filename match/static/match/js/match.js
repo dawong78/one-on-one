@@ -1,28 +1,31 @@
 angular.module("matchApp", [])
-    .controller("MatchController", ["$scope", function ($scope) {
-        $scope.groups = [
-            {
-                name:"group name",
-                people:[
-                    {name:"name1", email:"email1"},
-                    {name:"name2", email:"email2"}
-                ],
-                matches:[
-                    {
-                        person1:{name:"name1", email:"email1"},
-                        person2:{name:"name2", email:"email2"},
-                        person3:{}
-                    }
-                ]
-            }
-        ];
+    .config(function($httpProvider) {
+         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    })
+    .controller("MatchController", ["$scope", "$http", function ($scope, $http) {
+        $scope.groups = [];
+        $scope.selectedGroup = null;
         
-        $scope.addUser = function () {
-            for (group in $scope.groups) {
-                if (group.name === $scope.addGroup) {
-                    group.people.push({name:$scope.addName, email:$scope.addEmail})
-                }
-            }
+        $scope.refresh = function() {
+            $http.get("/match/groups").success(function(data) {
+               $scope.groups = data;
+               if (data.length > 0) {
+                   $scope.selectedGroup = $scope.groups[0];
+               }
+            });
         };
 
+        $scope.addUser = function() {
+            var params = { 
+                name: $scope.add_person_name,
+                email: $scope.add_person_email,
+            }
+            $http.post("/match/add_user", params)
+                    .success(function(results) {
+                $scope.add_person_results = "User added";
+                $scope.refresh()
+            });
+        };
+        
+        $scope.refresh()
     }]);

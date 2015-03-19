@@ -5,11 +5,71 @@ import logging
 import sys
 import traceback
 from datetime import datetime
+from django.db.models import Max
 
 log = logging.getLogger(__name__)
 
 class Controller:
     
+    def get_view_groups(self):
+        """Get all the groups and their latest matches"""
+        view_groups = []
+        groups = Group.objects.all()
+        for group in groups:
+            count = Result.objects.filter(group=group).count()
+            matches = []
+            if count > 0:
+                latest_date = Result.objects.filter(group=group)\
+                        .aggregate(Max("date_created"))["date_created__max"]
+                result = Result.objects.get(date_created=latest_date)
+                matches = Match.objects.filter(result=result)
+            view_group = ViewGroup(name=group.name, people=list(group.people.all()),
+                    matches=matches)
+            view_groups.append(view_group)
+        return view_groups
+
+    def add_user(self, personName, personEmail):
+        """Add a new user to a group
+        Create the user, if he/she does not exist
+
+        Expected parameters:
+        groupName - group to join
+        personName - name of user
+        personEmail - email of user
+        """
+        personList = Person.objects.filter(name=personName,email=personEmail)
+        person = None
+        if len(personList) == 0:
+            # New person
+            logger.debug("Creating new user: {}".format(person))
+            person = Person.objects.create(name=personName,email=personEmail)
+            person.save()
+        
+    def add_user_to_group(self, person, groupName):
+        group = Group.objects.get(name=groupName)
+        if group.people is None:
+            group.people = []
+        group.people.add(person)
+        group.save()
+
+    def create_group(self, name):
+        """Create a group.
+        
+        Returns True if the group was added.
+        False if the group already exists
+        """
+        groupList = Group.objects.filter(name=name)
+        logger.debug("groupList={}".format(groupList))
+        if len(groupList) > 0:
+            log.debug("Group already exists: {}".format(name))
+            return False
+        else:
+            logger.debug("Creating group: {}".format(name))
+            group = Group.objects.create(name=name)
+            group.save()
+            logger.info("Created group {}".format(name))
+            return True
+
     def run_match(self, group_name):
         group = Group.objects.get(name=group_name)
         pairStates = PairState.objects.filter(pair__group=group)

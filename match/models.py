@@ -9,12 +9,22 @@ log = logging.getLogger(__name__)
 class Person(models.Model):
     name = models.CharField(max_length = 255)
     email = models.CharField(max_length = 255)
+    
     def __str__(self):
         return "name={}, email={}".format(self.name, self.email)
+    
+    class Meta:
+        ordering = ("name", "email")
     
 class Group(models.Model):
     name = models.CharField(max_length=255)
     people = models.ManyToManyField(Person)
+    
+    def __str__(self):
+        return "name={}, people={}".format(self.name, self.people)
+    
+    class Meta:
+        ordering = ("name",)
     
 class Pair(models.Model):
     group = models.ForeignKey(Group)
@@ -23,6 +33,8 @@ class Pair(models.Model):
     def __str__(self):
         return "person1={}, person2={}".format(self.person1.name, 
                 self.person2.name)
+    class Meta:
+        ordering = ("group", "person1", "person2")
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)
@@ -32,16 +44,22 @@ class PersonState(models.Model):
     def __str__(self):
         return "person={}, unmatched={}, crowd={}".format(
             self.person, self.unmatched_count, self.crowd_count)
+    class Meta:
+        ordering = ("group", "person")
     
 class PairState(models.Model):
     pair = models.ForeignKey(Pair)
     match_count = models.IntegerField()
     def __str__(self):
         return "pair={}, match_count={}".format(self.pair, self.match_count)
+    class Meta:
+        ordering = ("pair",)
     
 class Result(models.Model):
     date_created = models.DateTimeField()
     group = models.ForeignKey(Group)
+    class Meta:
+        ordering = ("date_created",)
 
 class Match(models.Model):
     result = models.ForeignKey(Result)
@@ -55,6 +73,8 @@ class Match(models.Model):
                     self.person3.name)
         else:
             return "%s, %s"%(self.person1.name, self.person2.name)
+    class Meta:
+        ordering = ("result", "person1", "person2", "person3")
     
 
 class Graph:
@@ -242,6 +262,11 @@ class State:
 class ViewGroup:
     """View model to display all the information of a group"""
     
-    def __init__(self, group=None, matches=[]):
-        self.group = group
+    def __init__(self, id=0, name="", people=[], matches=[]):
+        self.id = id
+        self.name = name
+        self.people = people
         self.matches = matches
+        
+    class Meta:
+        ordering = ("name")

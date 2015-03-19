@@ -5,67 +5,55 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+        <script src="/static/match/js/match.js"></script>
     </head>
-    <body>
-        <script>
-            var my_app = angular.module('matchApp').config(function($httpProvider) {
-                $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-            });
-        </script>
+    <body ng-controller="MatchController as control">
         <div>Welcome to Matcher</div>
         
-        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-        <div ng-controller="MatchController as control">
-            <div id="groups">
-                <h1>Groups</h1>
-                {% for group in groups %}
-                    Name: {{ group.group.name }}
-                    <form action="{% url 'match:create_group_matches'%}" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="group_name" value="{{group.group.name}}"/>
-                        <input type="submit" value="Match"/>
-                    </form>
-                    Members:
-                    <ol>
-                    {% for person in group.group.people.all %}
-                    <li/>{{ person.name }}
-                    {% endfor %}
-                    </ol>
-                    Match-ups:
-                    <ol>
-                    {% for match in group.matches %}
-                        <li/>{{match.person1.name}}, {{match.person2.name}}, {{match.person3.name|default_if_none:""}}
-                    {% endfor %}
-                    </ol>
-                {% endfor %}
+        <div id="group_list">
+            <h1>Groups</h1>
+            <form action="{% url 'match:create_group_matches'%}" method="post">
+                <input type="hidden" name="group_name" value="{% verbatim %} {{group.name}} {% endverbatim %}"/>
+                <select ng-model="selectedGroup" 
+                        ng-options="group as group.name for group in groups">
+                </select>
+                <input type="submit" value="Match"/>
+            </form>
+            <div>
+                Name: {% verbatim %} {{ selectedGroup.name }} {% endverbatim %}
+                Members:
+                <ol>
+                    <li ng-repeat="person in selectedGroup.people">{% verbatim %} {{ person.name }} {% endverbatim %}</li>
+                </ol>
+                Match-ups:
+                <ol>
+                    <li ng-repeat="match in selectedGroup.matches">{% verbatim %} {{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}} {% endverbatim %}
+                </ol>
             </div>
+        </div>
 
-            <div id="add_user">
-                <h1>Register</h1>
+        <div id="add_user">
+            <h1>Register</h1>
 
-                <form action="{% url 'match:add_user'%}" method="post">
-                    {% csrf_token %}
-                    Name <input type="text" name="name"/>
-                    Email <input type="text" name="email"/>
-                    Group <select name="group">
-                        {% for group in groups %}
-                        <option name="{{group.group.name}}">{{group.group.name}}</option>
-                        {% endfor %}
-                    </select>
-                    <input type="submit" value="Add"/>
-                </form>
-            </div>
+            <form ng-submit="addUser()">
+                Name <input type="text" ng-model="add_person_name"/>
+                Email <input type="text" ng-model="add_person_email"/>
+                Group <select ng-model="add_person_group" 
+                        ng-options="group as group.name for group in groups">
+                </select>
+                <input type="submit" value="Add"/>
+            </form>
+            <span ng-model="add_person_results"/>
+        </div>
 
-            <div id="create_group">
-                <h1>Admin</h1>
+        <div id="create_group">
+            <h1>Admin</h1>
 
-                <form action="{% url 'match:create_group'%}" method="post">
-                    {% csrf_token %}
-                    Group <input type="text" name="name"/>
-                    <input type="submit" value="Create"/>
-                </form>
-            </div>
+            <form action="{% url 'match:create_group'%}" method="post">
+                {% csrf_token %}
+                Group <input type="text" name="name"/>
+                <input type="submit" value="Create"/>
+            </form>
         </div>
     </body>
 </html>
