@@ -58,3 +58,32 @@ class ViewGroupSer(serializers.Serializer):
             instance.people.append(Person(**person))
         for match in validated_data.get("matches", []):
             instance.matches.append(Match(**match))
+            
+class GroupUrlSer(serializers.ModelSerializer):
+    people = PersonSer(many="True")
+    results = serializers.HyperlinkedRelatedField(many="True", read_only="True",
+            view_name="result-detail")
+    """Define the API representation"""
+    class Meta:
+        model = Group
+        fields = ("id", "name", "people", "results")
+        
+class MatchUrlSer(serializers.ModelSerializer):
+    result = serializers.HyperlinkedRelatedField(view_name="result-detail", 
+            read_only="True")
+    person1 = PersonSer(read_only="True")
+    person2 = PersonSer(read_only="True")
+    person3 = PersonSer(read_only="True")
+    class Meta:
+        model = Match
+        fields = ("id", "result", "person1", "person2", "person3")
+
+class ResultUrlSer(serializers.HyperlinkedModelSerializer):
+    """Define the API representation"""
+    group = serializers.HyperlinkedRelatedField(view_name="group-detail", 
+            read_only="True")
+    matches = MatchUrlSer(many="True", read_only="True")
+    class Meta:
+        model = Result
+        fields = ("id", "group", "date_created", "matches")
+        

@@ -5,14 +5,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 import views
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'one_on_one.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
     # REST urls
-    url(r'^groups$', views.GroupListView.as_view(), name='groups'),
-    url(r'^people/(?P<id>[0-9]+)$', views.PersonView.as_view(), name='add_user'),
-    
+
     # Other urls
     url(r'^create_group$', views.create_group, name='create_group'),
     url(r'^create_group_matches$', views.create_group_matches, name='create_group_matches'),

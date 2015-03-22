@@ -7,6 +7,7 @@ from match.serializers import *
 from django.http import Http404
 from django.shortcuts import render, redirect
 
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -97,4 +98,22 @@ class PersonView(APIView):
         person = self.get_person(id)
         person.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class PeopleViewSet(viewsets.ModelViewSet):
+    """Define view behavior"""
+    queryset = Person.objects.all()
+    serializer_class = PersonSer
+    
+class GroupViewSet(viewsets.ModelViewSet):
+    """Define view behavior"""
+    queryset = Group.objects.all()
+    serializer_class = GroupUrlSer
+    
+class ResultViewSet(viewsets.ModelViewSet):
+    queryset = Result.objects.all()
+    serializer_class = ResultUrlSer
+    
+class MatchViewSet(viewsets.ModelViewSet):
+    queryset = Match.objects.all()
+    serializer_class = MatchUrlSer
     

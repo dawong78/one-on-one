@@ -57,12 +57,12 @@ class PairState(models.Model):
     
 class Result(models.Model):
     date_created = models.DateTimeField()
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(Group, related_name="results")
     class Meta:
         ordering = ("date_created",)
 
 class Match(models.Model):
-    result = models.ForeignKey(Result)
+    result = models.ForeignKey(Result, related_name="matches")
     person1 = models.ForeignKey(Person, related_name="first_person_match")
     person2 = models.ForeignKey(Person, related_name="second_person_match")
     person3 = models.ForeignKey(Person, related_name="third_person_match", 

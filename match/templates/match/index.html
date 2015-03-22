@@ -15,20 +15,27 @@
             <form action="{% url 'match:create_group_matches'%}" method="post">
                 <input type="hidden" name="group_name" value="{% verbatim %} {{group.name}} {% endverbatim %}"/>
                 <select ng-model="selectedGroup" 
-                        ng-options="group as group.name for group in groups">
+                        ng-options="group as group.name for group in groups"
+                        ng-change="fetchGroupLatestResults()">
                 </select>
                 <input type="submit" value="Match"/>
             </form>
             <div>
+                <div>
                 Name: {% verbatim %} {{ selectedGroup.name }} {% endverbatim %}
+                </div>
+                <div>
                 Members:
                 <ol>
                     <li ng-repeat="person in selectedGroup.people">{% verbatim %} {{ person.name }} {% endverbatim %}</li>
                 </ol>
+                </div>
+                <div>
                 Match-ups:
                 <ol>
-                    <li ng-repeat="match in selectedGroup.matches">{% verbatim %} {{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}} {% endverbatim %}
+                    <li ng-repeat="match in selectedResults.matches">{% verbatim %} {{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}} {% endverbatim %}
                 </ol>
+                </div>
             </div>
         </div>
 
