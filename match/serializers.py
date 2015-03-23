@@ -41,7 +41,7 @@ class MatchSer(serializers.ModelSerializer):
         fields = ("id", "person1", "person2", "person3")
     
 class GroupUrlSer(serializers.ModelSerializer):
-    people = PersonSer(many="True")
+    people = PersonSer(many="True", read_only="True")
     results = serializers.HyperlinkedRelatedField(many="True", read_only="True",
             view_name="result-detail")
     """Define the API representation"""

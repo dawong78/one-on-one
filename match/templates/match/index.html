@@ -43,6 +43,7 @@
             <h1>Register</h1>
 
             <form ng-submit="addUser()">
+                {% csrf_token %}
                 Name <input type="text" ng-model="add_person_name"/>
                 Email <input type="text" ng-model="add_person_email"/>
                 Group <select ng-model="add_person_group" 
@@ -56,9 +57,9 @@
         <div id="create_group">
             <h1>Admin</h1>
 
-            <form action="{% url 'match:create_group'%}" method="post">
+            <form ng-submit="addGroup()">
                 {% csrf_token %}
-                Group <input type="text" name="name"/>
+                Group <input type="text" ng-model="add_group_name"/>
                 <input type="submit" value="Create"/>
             </form>
         </div>

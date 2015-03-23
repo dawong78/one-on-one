@@ -36,22 +36,22 @@ angular.module("matchApp", [])
                 var lastResults = groupResults[groupResults.length-1];
                 $http.get(lastResults).success(function(lastData) {
                     $scope.selectedResults = lastData;
-                })
+                });
             } else {
                 $scope.selectedResults = null;
             }
-        }
+        };
         
         $scope.addUser = function() {
             var params = { 
                 name: $scope.add_person_name,
-                email: $scope.add_person_email,
-            }
+                email: $scope.add_person_email
+            };
             $http.post("/match/rest/people/", params)
                     .success(function(results) {
                 var params2 = {
-                    person_id: results.id,
-                }
+                    person_id: results.id
+                };
                 $http.post("/match/group/" + $scope.add_person_group.id + "/people/", params2)
                         .success(function(groupResults) {
                     $scope.add_person_results = "User added";
@@ -60,5 +60,16 @@ angular.module("matchApp", [])
             });
         };
         
-        $scope.refresh()
+        $scope.addGroup = function() {
+            var params = {
+                name: $scope.add_group_name,
+                people: []
+            };
+            $http.post("/match/rest/groups/", params)
+                    .success(function(results) {
+                $scope.refresh();
+            });
+        };
+        
+        $scope.refresh();
     }]);
