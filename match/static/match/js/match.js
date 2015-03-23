@@ -52,7 +52,8 @@ angular.module("matchApp", [])
                 var params2 = {
                     person_id: results.id
                 };
-                $http.post("/match/group/" + $scope.add_person_group.id + "/people/", params2)
+                $http.post("/match/group/" + $scope.add_person_group.id + 
+                        "/people/", params2)
                         .success(function(groupResults) {
                     $scope.add_person_results = "User added";
                     $scope.refresh();
@@ -70,6 +71,14 @@ angular.module("matchApp", [])
                 $scope.refresh();
             });
         };
+        
+        $scope.runMatch = function() {
+            $http.post("/match/rest/groups/" + $scope.selectedGroup.id + 
+                    "/run_match/")
+                    .success(function(result) {
+                $scope.refresh();
+            })
+        }
         
         $scope.refresh();
     }]);

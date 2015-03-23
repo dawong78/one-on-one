@@ -10,6 +10,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import detail_route
 
 logger = logging.getLogger(__name__)
 control = Controller()
@@ -60,6 +61,13 @@ class GroupViewSet(viewsets.ModelViewSet):
     """Define view behavior"""
     queryset = Group.objects.all()
     serializer_class = GroupUrlSer
+    
+    @detail_route(methods=["post"])
+    def run_match(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        result = control.run_match(group)
+        ser = ResultUrlSer(result, context={"request": request})
+        return Response(ser.data)
     
 class ResultViewSet(viewsets.ModelViewSet):
     queryset = Result.objects.all()

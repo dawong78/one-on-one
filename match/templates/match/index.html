@@ -12,8 +12,7 @@
         
         <div id="group_list">
             <h1>Groups</h1>
-            <form action="{% url 'match:create_group_matches'%}" method="post">
-                <input type="hidden" name="group_name" value="{% verbatim %} {{group.name}} {% endverbatim %}"/>
+            <form ng-submit="runMatch()">
                 <select ng-model="selectedGroup" 
                         ng-options="group as group.name for group in groups"
                         ng-change="fetchGroupLatestResults()">
@@ -43,7 +42,6 @@
             <h1>Register</h1>
 
             <form ng-submit="addUser()">
-                {% csrf_token %}
                 Name <input type="text" ng-model="add_person_name"/>
                 Email <input type="text" ng-model="add_person_email"/>
                 Group <select ng-model="add_person_group" 
@@ -58,7 +56,6 @@
             <h1>Admin</h1>
 
             <form ng-submit="addGroup()">
-                {% csrf_token %}
                 Group <input type="text" ng-model="add_group_name"/>
                 <input type="submit" value="Create"/>
             </form>

@@ -34,7 +34,7 @@ class Pair(models.Model):
         return "person1={}, person2={}".format(self.person1.name, 
                 self.person2.name)
     class Meta:
-        ordering = ("group", "person1", "person2")
+        ordering = ("group__name", "person1__name", "person2__name")
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)

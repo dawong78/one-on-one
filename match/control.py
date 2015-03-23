@@ -69,8 +69,7 @@ class Controller:
             logger.info("Created group {}".format(name))
             return True
 
-    def run_match(self, group_name):
-        group = Group.objects.get(name=group_name)
+    def run_match(self, group):
         pairStates = PairState.objects.filter(pair__group=group)
         peopleStates = PersonState.objects.filter(group=group)
         state = DbUtility.to_state(list(group.people.all()), 
@@ -78,8 +77,8 @@ class Controller:
         model = DbUtility.to_model(group)
         matcher = Matcher(model)
         matchResults = matcher.match(0, state)
-        self.save_match_results(group, matchResults)
-        return matchResults
+        results = self.save_match_results(group, matchResults)
+        return results
 
     def get_group(self, name):
         try:
@@ -183,9 +182,9 @@ class Controller:
                         unmatchedPerson, 1)
             result.matches = matches
             result.save()
-
             
             log.debug("finished saving match_results")
+            return result
         except:
             log.debug("Error saving match results")
             traceback.print_exc(file=sys.stdout)
