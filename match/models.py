@@ -259,14 +259,6 @@ class State:
             tostr += "\n"
         return tostr
 
-class ViewGroup:
-    """View model to display all the information of a group"""
-    
-    def __init__(self, id=0, name="", people=[], matches=[]):
-        self.id = id
-        self.name = name
-        self.people = people
-        self.matches = matches
-        
-    class Meta:
-        ordering = ("name")
+class AddPersonGroupParams(object):
+    def __init__(self, person_id=-1):
+        self.person_id = person_id

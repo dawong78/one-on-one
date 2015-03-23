@@ -45,8 +45,7 @@ class Controller:
             person = Person.objects.create(name=personName,email=personEmail)
             person.save()
         
-    def add_user_to_group(self, person, groupName):
-        group = Group.objects.get(name=groupName)
+    def add_person_to_group(self, person, group):
         if group.people is None:
             group.people = []
         group.people.add(person)

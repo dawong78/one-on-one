@@ -40,25 +40,6 @@ class MatchSer(serializers.ModelSerializer):
         model = Match
         fields = ("id", "person1", "person2", "person3")
     
-class ViewGroupSer(serializers.Serializer):
-    id = serializers.IntegerField
-    name = serializers.CharField(max_length = 100)
-    people = PersonSer(many=True)
-    matches = MatchSer(many=True)
-    
-    def create(self, validated_data):
-        return ViewGroup(validated_data)
-    
-    def update(self, instance, validated_data):
-        instance.id = validated_data.get("id", instance.id)
-        instance.name = validated_data.get("name", instance.name)
-        instance.people = []
-        instance.matches = []
-        for person in validated_data.get("people", []):
-            instance.people.append(Person(**person))
-        for match in validated_data.get("matches", []):
-            instance.matches.append(Match(**match))
-            
 class GroupUrlSer(serializers.ModelSerializer):
     people = PersonSer(many="True")
     results = serializers.HyperlinkedRelatedField(many="True", read_only="True",
@@ -87,3 +68,10 @@ class ResultUrlSer(serializers.HyperlinkedModelSerializer):
         model = Result
         fields = ("id", "group", "date_created", "matches")
         
+class AddPersonGroupParamsSer(serializers.Serializer):
+    person_id = serializers.IntegerField()
+    def create(self, validated_data):
+        return AddPersonGroupParams(**validated_data)
+    def update(self, instance, validated_data):
+        instance.person_id = validated_data.get("person_id", instance.person_id)
+        return instance;
