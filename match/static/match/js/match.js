@@ -1,10 +1,36 @@
-angular.module("matchApp", [])
-    .config(function($httpProvider) {
+angular.module("matchApp", ["ngRoute"])
+    .config(["$httpProvider", "$routeProvider", function($httpProvider, $routeProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-    })
-    .controller("MatchController", ["$scope", "$http", function ($scope, $http) {
+        
+        $routeProvider
+                .when("/groups/", {
+                    templateUrl: "/static/match/partials/view_group.html",
+                    controller: "MatchController"
+                })
+                .when("/groups/:group_id/", {
+                    templateUrl: "/static/match/partials/view_group.html",
+                    controller: "MatchController"
+                })
+                .when("/groups/:group_id/members/", {
+                    templateUrl: "/static/match/partials/view_members.html",
+                    controller: "GroupController"
+                })
+                .when("/register_user", {
+                    templateUrl: "/static/match/partials/add_user.html",
+                    controller: "MatchController"
+                })
+                .otherwise({
+                    redirectTo: "/groups/"
+                });
+    }])
+    .controller("MatchController", ["$scope", "$http", "$routeParams",
+            function ($scope, $http, $routeParams) {
+        $scope.selectedGroupId = -1;
+        if ($routeParams.group_id != null) {
+            $scope.selectedGroupId = parseInt($routeParams.group_id);
+        }
         $scope.groups = [];
         $scope.selectedGroup = null;
         $scope.selectedResults = null;
@@ -14,8 +40,19 @@ angular.module("matchApp", [])
                 $scope.groups = data.results;
                 if ($scope.groups.length > 0) {
                     if ($scope.selectedGroup === null) {
-                        // Initialize with the first group
-                        $scope.selectedGroup = $scope.groups[0];
+                        if ($scope.selectedGroupId !== null) {
+                            // Try to find the requested group.
+                            for (var i = 0; i < $scope.groups.length; i++) {
+                                if ($scope.selectedGroupId === $scope.groups[i].id) {
+                                    $scope.selectedGroup = $scope.groups[i];
+                                    break;
+                                }
+                            }
+                        }
+                        if ($scope.selectedGroup === null) {
+                            // Initialize with the first group
+                            $scope.selectedGroup = $scope.groups[0];
+                        }
                     } else {
                         // Try to find the same selected group.
                         for (var i = 0; i < $scope.groups.length; i++) {
@@ -81,4 +118,14 @@ angular.module("matchApp", [])
         }
         
         $scope.refresh();
+    }])
+    .controller("GroupController", ["$scope", "$http", "$routeParams", 
+            function ($scope, $http, $routeParams) {
+        $scope.group_id = $routeParams.group_id;
+        $scope.members = [];
+        $http.get("/match/rest/groups/" + $scope.group_id)
+                .success(function(result) {
+                    $scope.members = result.people;
+        })
+            
     }]);

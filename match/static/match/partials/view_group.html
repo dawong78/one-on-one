@@ -1,0 +1,23 @@
+<div id="group_list">
+    <h1>Groups</h1>
+    <form ng-submit="runMatch()">
+        <select ng-model="selectedGroup" 
+                ng-options="group as group.name for group in groups"
+                ng-change="fetchGroupLatestResults()">
+        </select>
+        <input type="submit" value="Match"/>
+        <a href="#/groups/{{selectedGroup.id}}/members/">Members</a>
+    </form>
+    <div>
+        <div>
+            Name: {{ selectedGroup.name}}
+        </div>
+        <div>
+            Match-ups:
+            <ol>
+                <li ng-repeat="match in selectedResults.matches">{{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}}
+            </ol>
+        </div>
+    </div>
+</div>
+

@@ -4,7 +4,7 @@ from match.control import Controller
 from match.models import *
 from match.serializers import *
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 from rest_framework import viewsets
 from rest_framework.views import APIView
@@ -21,23 +21,6 @@ def index(request):
     logger.info("index called")
     context = {}
     return render(request, "match/index.html", context)
-
-def create_group(request):
-    """Create new group"""
-    name = request.POST["name"]
-    error = None
-    if (not control.create_group(name)):
-        error = "Group name already exists"
-    request.session["error_message"] = error
-    return redirect("/match")
-    
-def create_group_matches(request):
-    """Create new matches for a group"""
-    group_name = request.POST["group_name"]
-    logger.debug("Creating matches for group {}".format(group_name))
-    match_results = control.run_match(group_name)
-    logger.debug("Match results: {}".format(match_results))
-    return redirect("/match")
 
 class GroupPeopleView(APIView):
     def post(self, request, id, format=None):

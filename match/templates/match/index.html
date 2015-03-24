@@ -5,38 +5,13 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-route.js"></script>
         <script src="/static/match/js/match.js"></script>
     </head>
     <body ng-controller="MatchController as control">
-        <div>Welcome to Matcher</div>
-        
-        <div id="group_list">
-            <h1>Groups</h1>
-            <form ng-submit="runMatch()">
-                <select ng-model="selectedGroup" 
-                        ng-options="group as group.name for group in groups"
-                        ng-change="fetchGroupLatestResults()">
-                </select>
-                <input type="submit" value="Match"/>
-            </form>
-            <div>
-                <div>
-                Name: {% verbatim %} {{ selectedGroup.name }} {% endverbatim %}
-                </div>
-                <div>
-                Members:
-                <ol>
-                    <li ng-repeat="person in selectedGroup.people">{% verbatim %} {{ person.name }} {% endverbatim %}</li>
-                </ol>
-                </div>
-                <div>
-                Match-ups:
-                <ol>
-                    <li ng-repeat="match in selectedResults.matches">{% verbatim %} {{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}} {% endverbatim %}
-                </ol>
-                </div>
-            </div>
-        </div>
+        <div>Welcome to The Prayer Circle</div>
+
+        <div ng-view></div>
 
         <div id="add_user">
             <h1>Register</h1>
@@ -45,11 +20,11 @@
                 Name <input type="text" ng-model="add_person_name"/>
                 Email <input type="text" ng-model="add_person_email"/>
                 Group <select ng-model="add_person_group" 
-                        ng-options="group as group.name for group in groups">
+                              ng-options="group as group.name for group in groups">
                 </select>
                 <input type="submit" value="Add"/>
             </form>
-            <span>{% verbatim %} {{add_person_results}} {% endverbatim %}</span>
+            <span>{{add_person_results}}</span>
         </div>
 
         <div id="create_group">
