@@ -1,6 +1,6 @@
 <tabset>
     <tab heading="Groups">
-        <h1>Groups</h1>
+        <h2>Groups</h2>
         <span>{{message}}</span>
         <form ng-submit="runMatch()">
             <select ng-model="group_view.selectedGroup" 
@@ -23,7 +23,7 @@
         </div>
     </tab>
     <tab heading="Register">
-        <h1>Register</h1>
+        <h2>Register</h2>
 
         <form ng-submit="addUser()">
             Name <input type="text" ng-model="register.add_person_name"/>
@@ -36,7 +36,7 @@
         <span>{{register.add_person_results}}</span>
     </tab>
     <tab heading="Admin">
-        <h1>Admin</h1>
+        <h2>Admin</h2>
 
         <p>Name:{{admin.add_group_name}}</p>
         <form ng-submit="addGroup()">
