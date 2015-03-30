@@ -1,5 +1,6 @@
-angular.module("matchApp", ["ngRoute"])
-    .config(["$httpProvider", "$routeProvider", function($httpProvider, $routeProvider) {
+angular.module("matchApp", ["ngRoute", "ngResource"])
+    .config(["$httpProvider", "$routeProvider", "$resourceProvider",
+            function($httpProvider, $routeProvider, $resourceProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -24,9 +25,11 @@ angular.module("matchApp", ["ngRoute"])
                 .otherwise({
                     redirectTo: "/groups/"
                 });
+                
+        $resourceProvider.defaults.stripTrailingSlashes = false;
     }])
-    .controller("MatchController", ["$scope", "$http", "$routeParams",
-            function ($scope, $http, $routeParams) {
+    .controller("MatchController", ["$scope", "$http", "$routeParams", "Group",
+            function ($scope, $http, $routeParams, Group) {
         $scope.selectedGroupId = -1;
         if ($routeParams.group_id != null) {
             $scope.selectedGroupId = parseInt($routeParams.group_id);
@@ -34,9 +37,10 @@ angular.module("matchApp", ["ngRoute"])
         $scope.groups = [];
         $scope.selectedGroup = null;
         $scope.selectedResults = null;
+        $scope.message = null;
         
         $scope.refresh = function() {
-            $http.get("/match/rest/groups/").success(function(data) {
+            Group.get({}, function(data) {
                 $scope.groups = data.results;
                 if ($scope.groups.length > 0) {
                     if ($scope.selectedGroup === null) {
@@ -99,33 +103,40 @@ angular.module("matchApp", ["ngRoute"])
         };
         
         $scope.addGroup = function() {
-            var params = {
+            var newGroup = new Group({
                 name: $scope.add_group_name,
                 people: []
-            };
-            $http.post("/match/rest/groups/", params)
-                    .success(function(results) {
+            });
+            newGroup.$save(function() {
                 $scope.refresh();
             });
         };
         
         $scope.runMatch = function() {
-            $http.post("/match/rest/groups/" + $scope.selectedGroup.id + 
-                    "/run_match/")
-                    .success(function(result) {
-                $scope.refresh();
-            })
-        }
+            var group = Group.get({group_id: $scope.selectedGroup.id}, function() {
+                group.$run_match(function() {
+                    $scope.refresh();
+                })
+            });
+        };
         
         $scope.refresh();
     }])
-    .controller("GroupController", ["$scope", "$http", "$routeParams", 
-            function ($scope, $http, $routeParams) {
+    .controller("GroupController", ["$scope", "Group", "$routeParams", 
+            function ($scope, Group, $routeParams) {
         $scope.group_id = $routeParams.group_id;
         $scope.members = [];
-        $http.get("/match/rest/groups/" + $scope.group_id)
-                .success(function(result) {
-                    $scope.members = result.people;
-        })
+        Group.get({group_id:$scope.group_id}, function(result) {
+                $scope.members = result.people;
+        });
             
+    }])
+    .factory("Group", ["$resource", function($resource) {
+            return $resource("/match/rest/groups/:group_id/", {group_id:"@id"}, 
+            {
+                run_match: {
+                    method: "POST",
+                    url: "/match/rest/groups/:group_id/run_match/"
+                }
+            });
     }]);

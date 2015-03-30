@@ -1,5 +1,6 @@
 <div id="group_list">
     <h1>Groups</h1>
+    <span>{{message}}</span>
     <form ng-submit="runMatch()">
         <select ng-model="selectedGroup" 
                 ng-options="group as group.name for group in groups"
