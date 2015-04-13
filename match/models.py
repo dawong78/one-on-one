@@ -1,21 +1,25 @@
-from django.db import models
 from itertools import repeat
 import logging
+from django.contrib import admin
+from django.db import models
+from django.contrib.auth.models import User
+from oauth2client.django_orm import FlowField
+from oauth2client.django_orm import CredentialsField
 
 log = logging.getLogger(__name__)
 
 # Create your models here.
 
 class Person(models.Model):
-    name = models.CharField(max_length = 255)
-    email = models.CharField(max_length = 255)
-    
-    def __str__(self):
-        return "name={}, email={}".format(self.name, self.email)
-    
-    class Meta:
-        ordering = ("name", "email")
-    
+    user = models.OneToOneField(User)
+
+class FlowModel(models.Model):
+    id = models.ForeignKey(User, primary_key=True)
+    flow = FlowField()
+  
+class CredentialsModel(models.Model):
+    id = models.ForeignKey(User, primary_key=True)
+ 
 class Group(models.Model):
     name = models.CharField(max_length=255)
     people = models.ManyToManyField(Person)
@@ -262,3 +266,14 @@ class State:
 class AddPersonGroupParams(object):
     def __init__(self, person_id=-1):
         self.person_id = person_id
+        
+class CredentialsModel(models.Model):
+  id = models.ForeignKey(User, primary_key=True)
+  credential = CredentialsField()
+
+
+class CredentialsAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(CredentialsModel, CredentialsAdmin)

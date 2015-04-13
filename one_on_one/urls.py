@@ -14,10 +14,9 @@ router.register(r'matches', views.MatchViewSet)
 
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'one_on_one.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-    
+    url(r'oauth2callback', views.auth_return),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login',
+                        {'template_name': 'match/login.html'}),
     url(r'^match/rest/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^match/', include('match.urls', namespace="match")),
