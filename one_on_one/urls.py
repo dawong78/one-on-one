@@ -14,9 +14,8 @@ router.register(r'matches', views.MatchViewSet)
 
 
 urlpatterns = patterns('',
-    url(r'oauth2callback', views.auth_return),
-    url(r'^accounts/login/$', 'django.contrib.auth.views.login',
-                        {'template_name': 'match/login.html'}),
+    url('', include('social.apps.django_app.urls', namespace='social')),
+    url('', include('django.contrib.auth.urls', namespace='auth')),
     url(r'^match/rest/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^match/', include('match.urls', namespace="match")),
