@@ -8,48 +8,40 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import detail_route
-
-import os
-import logging
+from rest_framework.decorators import api_view
 
 logger = logging.getLogger(__name__)
 
 control = Controller()
 
-# CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
-# application, including client_id and client_secret, which are found
-# on the API Access tab on the Google APIs
-# Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
-
 # Create your views here.
 
 def index(request):
     logger.info("index called")
-    logger.debug("user={}".format(request.user))
+    user = request.user
+    logger.debug("user={}".format(user))
+    if not user.is_anonymous():
+        personList = Person.objects.filter(user=user)
+        if len(personList) == 0:
+            logger.info("new user added: {}".format(user))
+            person = Person(user=user)
+            person.save();
     context = RequestContext(request,
                            {'request': request,
                             'user': request.user})
     return render_to_response('match/index.html',
                              context_instance=context)
 
-class GroupPeopleView(APIView):
-    def post(self, request, id, format=None):
-        """Add a person to a group"""
-        ser = AddPersonGroupParamsSer(data=request.data)
-        if (ser.is_valid()):
-            param = ser.save()
-            person_id = param.person_id
-            person = Person.objects.get(id=person_id)
-            group = Group.objects.get(id=id)
-            control.add_person_to_group(person, group)
-            return Response(ser.data, status=status.HTTP_201_CREATED)
-        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+@api_view(['GET'])
+def current_user(request):
+    user = request.user
+    person = Person.objects.get(user=user)
+    ser = PersonSer(person)
+    return Response(ser.data)
+
 class PeopleViewSet(viewsets.ModelViewSet):
     """Define view behavior"""
     queryset = Person.objects.all()
@@ -66,6 +58,16 @@ class GroupViewSet(viewsets.ModelViewSet):
         result = control.run_match(group)
         ser = ResultUrlSer(result, context={"request": request})
         return Response(ser.data)
+    
+    @detail_route(methods=["post"])
+    def add_user(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        person = Person.objects.get(user=request.user)
+        logger.info("Adding {} to group {}".format(person, group))
+        control.add_person_to_group(person, group)
+        group.save()
+        ser = GroupUrlSer(group, context={"request": request})
+        return Response(ser.data, status=status.HTTP_201_CREATED)
     
 class ResultViewSet(viewsets.ModelViewSet):
     queryset = Result.objects.all()

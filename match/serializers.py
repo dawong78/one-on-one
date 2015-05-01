@@ -1,10 +1,16 @@
 from rest_framework import serializers
 from match.models import *
 
+class UserSer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
+        
 class PersonSer(serializers.ModelSerializer):
+    user = UserSer()
     class Meta:
         model = Person
-        fields = ("id", "name", "email")
+        fields = ("id", "user")
         
 class GroupSer(serializers.ModelSerializer):
     people = PersonSer(many=True)

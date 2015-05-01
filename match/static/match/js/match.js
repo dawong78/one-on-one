@@ -28,11 +28,12 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 
         $resourceProvider.defaults.stripTrailingSlashes = false;
     }])
-    .controller("MatchController", ["$scope", "$http", "$routeParams", "Group", "$log",
-            function ($scope, $http, $routeParams, Group, $log) {
+    .controller("MatchController", ["$scope", "$http", "$routeParams", "Group", "Person", "$log",
+            function ($scope, $http, $routeParams, Group, Person, $log) {
         $scope.group_view = {};
         $scope.admin = {};
         $scope.register = {};
+        $scope.current_user = {};
         
         $scope.group_view.selectedGroupId = -1;
         if ($routeParams.group_id != null) {
@@ -44,6 +45,14 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         $scope.group_view.message = null;
         
         $scope.refresh = function() {
+            $http.get('current_user')
+                .success(function(data, status, headers, config) {
+                    var id = data.id;
+                    Person.get({person_id: id}, function(data, status, headers, config) {
+                        $scope.current_user = data;
+                    })
+                }
+            );
             Group.get({}, function(data) {
                 $scope.groups = data.results;
                 if ($scope.groups.length > 0) {
@@ -89,18 +98,9 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         };
         
         $scope.addUser = function() {
-            var params = { 
-                name: $scope.register.add_person_name,
-                email: $scope.register.add_person_email
-            };
-            $http.post("/match/rest/people/", params)
-                    .success(function(results) {
-                var params2 = {
-                    person_id: results.id
-                };
-                $http.post("/match/group/" + $scope.register.add_person_group.id + 
-                        "/people/", params2)
-                        .success(function(groupResults) {
+            Group.get({group_id: $scope.group_view.selectedGroup.id}, function(data, status, headers, config) {
+                $log.debug("adding to group: " + data);
+                data.$add_user(function() {
                     $scope.register.add_person_results = "User added";
                     $scope.refresh();
                 });
@@ -143,6 +143,13 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 run_match: {
                     method: "POST",
                     url: "/match/rest/groups/:group_id/run_match/"
+                },
+                add_user: {
+                    method: "POST",
+                    url: "/match/rest/groups/:group_id/add_user/"
                 }
             });
+    }])
+    .factory("Person", ["$resource", function($resource) {
+            return $resource("/match/rest/people/:person_id/", {person_id:"@id"});
     }]);

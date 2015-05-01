@@ -26,8 +26,6 @@
         <h2>Register</h2>
 
         <form ng-submit="addUser()">
-            Name <input type="text" ng-model="register.add_person_name"/>
-            Email <input type="text" ng-model="register.add_person_email"/>
             Group <select ng-model="register.add_person_group" 
                           ng-options="group as group.name for group in groups">
             </select>

@@ -12,6 +12,9 @@ log = logging.getLogger(__name__)
 
 class Person(models.Model):
     user = models.OneToOneField(User)
+    
+    def __str__(self):
+        return "username={}".format(self.user.username)
 
 class FlowModel(models.Model):
     id = models.ForeignKey(User, primary_key=True)
@@ -25,7 +28,7 @@ class Group(models.Model):
     people = models.ManyToManyField(Person)
     
     def __str__(self):
-        return "name={}, people={}".format(self.name, self.people)
+        return "name={}, people={}".format(self.name, self.people.all())
     
     class Meta:
         ordering = ("name",)
