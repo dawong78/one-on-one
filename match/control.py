@@ -28,23 +28,6 @@ class Controller:
             view_groups.append(view_group)
         return view_groups
 
-    def add_user(self, personName, personEmail):
-        """Add a new user to a group
-        Create the user, if he/she does not exist
-
-        Expected parameters:
-        groupName - group to join
-        personName - name of user
-        personEmail - email of user
-        """
-        personList = Person.objects.filter(name=personName,email=personEmail)
-        person = None
-        if len(personList) == 0:
-            # New person
-            logger.debug("Creating new user: {}".format(person))
-            person = Person.objects.create(name=personName,email=personEmail)
-            person.save()
-        
     def add_person_to_group(self, person, group):
         if group.people is None:
             group.people = []
@@ -94,15 +77,15 @@ class Controller:
                     for j in range(i+1, len(sortedPeople)):
                         person2 = sortedPeople[j]
                         pairStateList = PairState.objects.filter(
-                            person1__name=person1.name,
-                            person2__name=person2.name,
+                            person1__user__username=person1.username,
+                            person2__user__username=person2.username,
                             group = group
                         )
                         if len(pairStateList) > 0:
                             pairStates.append(pairStateList[0])
             for person in people:
                 personStateList = PersonState.objects.filter(
-                    person__name = person.name,
+                    person__user__username = person.username,
                     group = group
                 )
                 if len(personStateList) > 0:
@@ -203,7 +186,7 @@ class Controller:
         personState.save()
 
     def set_matched_count(self, p1, p2, count):
-        if p1.getName() > p2.getName():
+        if p1.user.username > p2.user.username:
             temp = p1
             p1 = p2
             p2 = temp
@@ -228,7 +211,7 @@ class Controller:
         
     def get_pair(self, group, person1, person2):
         # people are matched in alphabetical order in database
-        if person1.name > person2.name:
+        if person1.user.username > person2.user.username:
             tmp = person2
             person2 = person1
             person1 = tmp
@@ -278,8 +261,8 @@ class Controller:
         perosn2_name - name of person
         """
         group = Group.objects.get(name=group_name)
-        p1 = Person.objects.get(name=person1_name)
-        p2 = Person.objects.get(name=person2_name)
+        p1 = Person.objects.get(user__username=person1_name)
+        p2 = Person.objects.get(user__username=person2_name)
         self.incr_match_count(group, p1, p2, count)
 
     def incr_match_count(self, group, person1, person2, count):

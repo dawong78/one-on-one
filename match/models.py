@@ -38,10 +38,10 @@ class Pair(models.Model):
     person1 = models.ForeignKey(Person, related_name="first_person_pair")
     person2 = models.ForeignKey(Person, related_name="second_person_pair")
     def __str__(self):
-        return "person1={}, person2={}".format(self.person1.name, 
-                self.person2.name)
+        return "person1={}, person2={}".format(self.person1.user.username, 
+                self.person2.user.username)
     class Meta:
-        ordering = ("group__name", "person1__name", "person2__name")
+        ordering = ("group__name", "person1__user__username", "person2__user__username")
     
 class PersonState(models.Model):
     person = models.ForeignKey(Person)
@@ -76,10 +76,10 @@ class Match(models.Model):
             null=True)
     def __str__(self):
         if (not self.person3 is None):
-            return "{}, {}, {}".format(self.person1.name, self.person2.name,
-                    self.person3.name)
+            return "{}, {}, {}".format(self.person1.user.username, 
+                    self.person2.user.username, self.person3.user.username)
         else:
-            return "%s, %s"%(self.person1.name, self.person2.name)
+            return "%s, %s"%(self.person1.user.username, self.person2.user.username)
     class Meta:
         ordering = ("result", "person1", "person2", "person3")
     
@@ -156,7 +156,7 @@ class Model:
 
     def get_person_by_name(self, name):
         for p in self.people:
-            if p.name == name:
+            if p.user.username == name:
                 return p
         return None
 

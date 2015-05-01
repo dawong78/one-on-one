@@ -17,7 +17,10 @@
             <div>
                 Match-ups:
                 <ol>
-                    <li ng-repeat="match in group_view.selectedResults.matches">{{match.person1.name}}, {{match.person2.name}}, {{match.person3.name}}
+                    <li ng-repeat="match in group_view.selectedResults.matches">
+                        {{match.person1.user.first_name}}  {{match.person1.user.last_name}}, 
+                        {{match.person2.user.first_name}}  {{match.person2.user.last_name}}, 
+                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}, 
                 </ol>
             </div>
         </div>
