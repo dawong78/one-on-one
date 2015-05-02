@@ -20,7 +20,8 @@
                     <li ng-repeat="match in group_view.selectedResults.matches">
                         {{match.person1.user.first_name}}  {{match.person1.user.last_name}}, 
                         {{match.person2.user.first_name}}  {{match.person2.user.last_name}}, 
-                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}, 
+                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}
+                    </li>
                 </ol>
             </div>
         </div>
@@ -28,18 +29,26 @@
     <tab heading="Register">
         <h2>Register</h2>
 
+        <alert ng-repeat="msg in register.alerts" type="{{msg.type}}" 
+               close="closeRegisterMsg()">{{msg.message}}</alert>
         <form ng-submit="addUser()">
             Group <select ng-model="register.add_person_group" 
                           ng-options="group as group.name for group in groups">
             </select>
-            <input type="submit" value="Add"/>
+            <input type="submit" value="Join"/>
         </form>
-        <span>{{register.add_person_results}}</span>
+        <ol>
+            <li ng-repeat="group in register.user_groups">
+                {{group.name}}
+                <a href="" ng-click="removeUserFromGroup()">Leave</a>
+            </li>
+        </ol>
     </tab>
     <tab heading="Admin">
         <h2>Admin</h2>
 
-        <p>Name:{{admin.add_group_name}}</p>
+        <alert ng-repeat="msg in admin.alerts" type="{{msg.type}}" 
+               close="closeAdminMsg()">{{msg.message}}</alert>
         <form ng-submit="addGroup()">
             Group <input type="text" ng-model="admin.add_group_name"/>
             <input type="submit" value="Create"/>

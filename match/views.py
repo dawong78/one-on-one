@@ -42,6 +42,14 @@ def current_user(request):
     ser = PersonSer(person)
     return Response(ser.data)
 
+@api_view(['GET'])
+def user_groups(request):
+    user = request.user
+    person = Person.objects.get(user=user)
+    groups = Group.objects.filter(people=person)
+    ser = GroupUrlSer(groups, many="True", context={"request": request})
+    return Response(ser.data)
+
 class PeopleViewSet(viewsets.ModelViewSet):
     """Define view behavior"""
     queryset = Person.objects.all()
@@ -65,7 +73,15 @@ class GroupViewSet(viewsets.ModelViewSet):
         person = Person.objects.get(user=request.user)
         logger.info("Adding {} to group {}".format(person, group))
         control.add_person_to_group(person, group)
-        group.save()
+        ser = GroupUrlSer(group, context={"request": request})
+        return Response(ser.data, status=status.HTTP_201_CREATED)
+    
+    @detail_route(methods=["post"])
+    def remove_user_from_group(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        person = Person.objects.get(user=request.user)
+        logger.info("Removing {} from group {}".format(person, group))
+        control.remove_person_from_group(person, group)
         ser = GroupUrlSer(group, context={"request": request})
         return Response(ser.data, status=status.HTTP_201_CREATED)
     

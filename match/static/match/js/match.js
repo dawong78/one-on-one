@@ -32,7 +32,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             function ($scope, $http, $routeParams, Group, Person, $log) {
         $scope.group_view = {};
         $scope.admin = {};
-        $scope.register = {};
+        $scope.register = {user_groups:[]};
         $scope.current_user = {};
         
         $scope.group_view.selectedGroupId = -1;
@@ -51,6 +51,11 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                     Person.get({person_id: id}, function(data, status, headers, config) {
                         $scope.current_user = data;
                     })
+                }
+            );
+            $http.get('user_groups')
+                .success(function(data, status, headers, config) {
+                    $scope.register.user_groups = data;
                 }
             );
             Group.get({}, function(data) {
@@ -101,10 +106,30 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             Group.get({group_id: $scope.group_view.selectedGroup.id}, function(data, status, headers, config) {
                 $log.debug("adding to group: " + data);
                 data.$add_user(function() {
-                    $scope.register.add_person_results = "User added";
+                    $scope.register.alerts =  [{
+                        type:"success",
+                        message: "User added"
+                    }];
                     $scope.refresh();
                 });
             });
+        };
+        
+        $scope.removeUserFromGroup = function() {
+            Group.get({group_id: $scope.group_view.selectedGroup.id}, function(data, status, headers, config) {
+                $log.debug("removing from group: " + data);
+                data.$remove_user_from_group(function() {
+                    $scope.register.alerts = [{
+                        type:"success",
+                        message:"User removed from group"
+                    }];
+                    $scope.refresh();
+                });
+            });
+        };
+        
+        $scope.closeRegisterMsg = function() {
+            $scope.register.alerts = [];
         };
         
         $scope.addGroup = function() {
@@ -113,9 +138,18 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             newGroup.name = $scope.admin.add_group_name;
             newGroup.people = [];
             Group.save(newGroup, function() {
+                $scope.admin.alerts = [{
+                    type:"success",
+                    message:"Added group " + newGroup.name
+                }];
+                $scope.admin.add_group_name = "";
                 $scope.refresh();
             });
         };
+        
+        $scope.closeAdminMsg = function() {
+            $scope.admin.alerts = [];
+        }
         
         $scope.runMatch = function() {
             $log.debug("running matches for group: " + $scope.group_view.selectedGroup.name);
@@ -147,6 +181,10 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 add_user: {
                     method: "POST",
                     url: "/match/rest/groups/:group_id/add_user/"
+                },
+                remove_user_from_group: {
+                    method: "POST",
+                    url: "/match/rest/groups/:group_id/remove_user_from_group/"
                 }
             });
     }])

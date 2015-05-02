@@ -33,6 +33,11 @@ class Controller:
             group.people = []
         group.people.add(person)
         group.save()
+        
+    def remove_person_from_group(self, person, group):
+        newPeople = group.people.exclude(id = person.id)
+        group.people = newPeople
+        group.save()
 
     def create_group(self, name):
         """Create a group.
