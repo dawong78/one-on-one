@@ -6,12 +6,11 @@ from match.serializers import *
 
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-
-from rest_framework import viewsets
+from django.views.generic.edit import DeletionMixin
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import detail_route
-from rest_framework.decorators import api_view
+from rest_framework.decorators import detail_route, api_view
+from rest_framework import mixins
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,8 @@ class PeopleViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSer
     
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ModelViewSet,
+                    DeletionMixin):
     """Define view behavior"""
     queryset = Group.objects.all()
     serializer_class = GroupUrlSer
@@ -84,6 +84,12 @@ class GroupViewSet(viewsets.ModelViewSet):
         control.remove_person_from_group(person, group)
         ser = GroupUrlSer(group, context={"request": request})
         return Response(ser.data, status=status.HTTP_201_CREATED)
+    
+    @detail_route(methods=["delete"])
+    def delete(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        ser = GroupUrlSer(group, context={"request": request})
+        return Response(ser.data)
     
 class ResultViewSet(viewsets.ModelViewSet):
     queryset = Result.objects.all()

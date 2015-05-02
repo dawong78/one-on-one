@@ -31,9 +31,9 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
     .controller("MatchController", ["$scope", "$http", "$routeParams", "Group", "Person", "$log",
             function ($scope, $http, $routeParams, Group, Person, $log) {
         $scope.group_view = {};
-        $scope.admin = {};
-        $scope.register = {user_groups:[]};
-        $scope.current_user = {};
+        $scope.admin = {alerts:[]};
+        $scope.register = {alerts:[]};
+        $scope.current_user = {user:null,user_groups:[]};
         
         $scope.group_view.selectedGroupId = -1;
         if ($routeParams.group_id != null) {
@@ -49,13 +49,13 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 .success(function(data, status, headers, config) {
                     var id = data.id;
                     Person.get({person_id: id}, function(data, status, headers, config) {
-                        $scope.current_user = data;
+                        $scope.current_user.user = data;
                     })
                 }
             );
             $http.get('user_groups')
                 .success(function(data, status, headers, config) {
-                    $scope.register.user_groups = data;
+                    $scope.current_user.user_groups = data;
                 }
             );
             Group.get({}, function(data) {
@@ -146,6 +146,15 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 $scope.refresh();
             });
         };
+        
+        $scope.removeGroup = function(index) {
+            var id = $scope.groups[index].id;
+            $log.debug("removing group " + $scope.groups[index].name);
+            Group.get({group_id:id}, function(data) {
+                data.$delete();
+                $scope.refresh();
+            });
+        }
         
         $scope.closeAdminMsg = function() {
             $scope.admin.alerts = [];

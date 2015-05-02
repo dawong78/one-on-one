@@ -37,8 +37,9 @@
             </select>
             <input type="submit" value="Join"/>
         </form>
+        My Groups:
         <ol>
-            <li ng-repeat="group in register.user_groups">
+            <li ng-repeat="group in current_user.user_groups">
                 {{group.name}}
                 <a href="" ng-click="removeUserFromGroup()">Leave</a>
             </li>
@@ -50,9 +51,16 @@
         <alert ng-repeat="msg in admin.alerts" type="{{msg.type}}" 
                close="closeAdminMsg()">{{msg.message}}</alert>
         <form ng-submit="addGroup()">
-            Group <input type="text" ng-model="admin.add_group_name"/>
+            New Group Name <input type="text" ng-model="admin.add_group_name"/>
             <input type="submit" value="Create"/>
         </form>
+        Current Groups:
+        <ol>
+            <li ng-repeat="group in groups">
+                {{group.name}}
+                <a href="" ng-click="removeGroup($index)">Remove</a>
+            </li>
+        </ol>
     </tab>
 </tabset>
 
