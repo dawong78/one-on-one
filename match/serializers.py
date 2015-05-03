@@ -14,9 +14,10 @@ class PersonSer(serializers.ModelSerializer):
         
 class GroupSer(serializers.ModelSerializer):
     people = PersonSer(many=True)
+    owner = PersonSer()
     class Meta:
         model = Group
-        fields = ("id", "name", "people")
+        fields = ("id", "name", "owner", "people")
     
 class PairSer(serializers.ModelSerializer):
     class Meta:
@@ -48,12 +49,13 @@ class MatchSer(serializers.ModelSerializer):
     
 class GroupUrlSer(serializers.ModelSerializer):
     people = PersonSer(many="True", read_only="True")
+    owner = PersonSer(read_only="True")
     results = serializers.HyperlinkedRelatedField(many="True", read_only="True",
             view_name="result-detail")
     """Define the API representation"""
     class Meta:
         model = Group
-        fields = ("id", "name", "people", "results")
+        fields = ("id", "name", "owner", "people", "results")
         
 class MatchUrlSer(serializers.ModelSerializer):
     result = serializers.HyperlinkedRelatedField(view_name="result-detail", 

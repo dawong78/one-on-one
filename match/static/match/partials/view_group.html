@@ -1,15 +1,10 @@
 <tabset>
     <tab heading="Groups">
         <h2>Groups</h2>
-        <span>{{message}}</span>
-        <form ng-submit="runMatch()">
-            <select ng-model="group_view.selectedGroup" 
-                    ng-options="group as group.name for group in groups"
-                    ng-change="fetchGroupLatestResults()">
-            </select>
-            <input type="submit" value="Match"/>
-            <a href="#/groups/{{group_view.selectedGroup.id}}/members/">Members</a>
-        </form>
+        <select ng-model="group_view.selectedGroup" 
+                ng-options="group as group.name for group in current_user.member_groups"
+                ng-change="fetchGroupResults()">
+        </select>
         <div>
             <div>
                 Name: {{group_view.selectedGroup.name}}
@@ -39,9 +34,9 @@
         </form>
         My Groups:
         <ol>
-            <li ng-repeat="group in current_user.user_groups">
+            <li ng-repeat="group in current_user.member_groups">
                 {{group.name}}
-                <a href="" ng-click="removeUserFromGroup()">Leave</a>
+                <a href="" ng-click="removeUserFromGroup($index)">Leave</a>
             </li>
         </ol>
     </tab>
@@ -54,13 +49,36 @@
             New Group Name <input type="text" ng-model="admin.add_group_name"/>
             <input type="submit" value="Create"/>
         </form>
-        Current Groups:
+        Owned Groups:
         <ol>
-            <li ng-repeat="group in groups">
+            <li ng-repeat="group in current_user.owner_groups">
                 {{group.name}}
                 <a href="" ng-click="removeGroup($index)">Remove</a>
             </li>
         </ol>
+        <form ng-submit="runMatchForSelectedGroup()">
+            <select ng-model="admin.selectedGroup" 
+                    ng-options="group as group.name for group in current_user.owner_groups"
+                    ng-change="fetchAdminResults()">
+            </select>
+            <input type="submit" value="Match"/>
+            <a href="#/groups/{{admin.selectedGroup.id}}/members/">Members</a>
+        </form>
+        <div>
+            <div>
+                Name: {{admin.selectedGroup.name}}
+            </div>
+            <div>
+                Match-ups:
+                <ol>
+                    <li ng-repeat="match in admin.selectedResults.matches">
+                        {{match.person1.user.first_name}}  {{match.person1.user.last_name}}, 
+                        {{match.person2.user.first_name}}  {{match.person2.user.last_name}}, 
+                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}
+                    </li>
+                </ol>
+            </div>
+        </div>
     </tab>
 </tabset>
 

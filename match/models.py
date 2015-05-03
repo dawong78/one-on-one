@@ -1,10 +1,8 @@
 from itertools import repeat
 import logging
-from django.contrib import admin
+
 from django.db import models
 from django.contrib.auth.models import User
-from oauth2client.django_orm import FlowField
-from oauth2client.django_orm import CredentialsField
 
 log = logging.getLogger(__name__)
 
@@ -16,27 +14,22 @@ class Person(models.Model):
     def __str__(self):
         return "username={}".format(self.user.username)
 
-class FlowModel(models.Model):
-    id = models.ForeignKey(User, primary_key=True)
-    flow = FlowField()
-  
-class CredentialsModel(models.Model):
-    id = models.ForeignKey(User, primary_key=True)
- 
 class Group(models.Model):
     name = models.CharField(max_length=255)
-    people = models.ManyToManyField(Person)
+    people = models.ManyToManyField(Person, related_name="group.people")
+    owner = models.ForeignKey(Person, related_name="group.owner", null=True)
     
     def __str__(self):
-        return "name={}, people={}".format(self.name, self.people.all())
+        return "name={}, owner={}, people={}".format(self.name, 
+            self.owner, self.people.all())
     
     class Meta:
         ordering = ("name",)
     
 class Pair(models.Model):
     group = models.ForeignKey(Group)
-    person1 = models.ForeignKey(Person, related_name="first_person_pair")
-    person2 = models.ForeignKey(Person, related_name="second_person_pair")
+    person1 = models.ForeignKey(Person, related_name="pair.person1")
+    person2 = models.ForeignKey(Person, related_name="pair.person2")
     def __str__(self):
         return "person1={}, person2={}".format(self.person1.user.username, 
                 self.person2.user.username)
@@ -70,10 +63,9 @@ class Result(models.Model):
 
 class Match(models.Model):
     result = models.ForeignKey(Result, related_name="matches")
-    person1 = models.ForeignKey(Person, related_name="first_person_match")
-    person2 = models.ForeignKey(Person, related_name="second_person_match")
-    person3 = models.ForeignKey(Person, related_name="third_person_match", 
-            null=True)
+    person1 = models.ForeignKey(Person, related_name="match.person1")
+    person2 = models.ForeignKey(Person, related_name="match.person2")
+    person3 = models.ForeignKey(Person, related_name="match.person3", null=True)
     def __str__(self):
         if (not self.person3 is None):
             return "{}, {}, {}".format(self.person1.user.username, 
@@ -270,13 +262,3 @@ class AddPersonGroupParams(object):
     def __init__(self, person_id=-1):
         self.person_id = person_id
         
-class CredentialsModel(models.Model):
-  id = models.ForeignKey(User, primary_key=True)
-  credential = CredentialsField()
-
-
-class CredentialsAdmin(admin.ModelAdmin):
-    pass
-
-
-admin.site.register(CredentialsModel, CredentialsAdmin)

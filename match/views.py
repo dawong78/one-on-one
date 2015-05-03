@@ -10,7 +10,6 @@ from django.views.generic.edit import DeletionMixin
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, api_view
-from rest_framework import mixins
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +41,18 @@ def current_user(request):
     return Response(ser.data)
 
 @api_view(['GET'])
-def user_groups(request):
+def member_groups(request):
     user = request.user
     person = Person.objects.get(user=user)
     groups = Group.objects.filter(people=person)
+    ser = GroupUrlSer(groups, many="True", context={"request": request})
+    return Response(ser.data)
+
+@api_view(['GET'])
+def owner_groups(request):
+    user = request.user
+    person = Person.objects.get(user=user)
+    groups = Group.objects.filter(owner=person)
     ser = GroupUrlSer(groups, many="True", context={"request": request})
     return Response(ser.data)
 
@@ -60,6 +67,10 @@ class GroupViewSet(viewsets.ModelViewSet,
     queryset = Group.objects.all()
     serializer_class = GroupUrlSer
     
+    def perform_create(self, serializer):
+        person = Person.objects.get(user=self.request.user)
+        serializer.save(owner=person)
+        
     @detail_route(methods=["post"])
     def run_match(self, request, pk=None):
         group = Group.objects.get(id=pk)
