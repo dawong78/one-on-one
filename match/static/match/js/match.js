@@ -210,20 +210,23 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             $scope.admin.alerts = [];
         };
         
-        $scope.runMatchForSelectedGroup = function() {
-            // Run the match for the selected group
-            $scope.runMatch($scope.admin.selectedGroup);
-        };
-        
         $scope.runMatchForMyGroup = function(index) {
             // Run the match for a group you own
             $scope.runMatch($scope.current_user.owner_groups[index]);
-        }
+        };
         
         $scope.runMatch = function(group) {
+            $scope.admin.alerts = [{
+                    type: "success",
+                    message: "Calculating matches.."
+            }];
             $log.debug("running matches for group: " + group.name);
             Group.get({group_id: group.id}, function(data) {
                 data.$run_match(function() {
+                    $scope.admin.alerts = [{
+                            type: "success",
+                            message: "Matches made for " + group.name
+                    }];
                     $scope.refresh();
                 });
             });

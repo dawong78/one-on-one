@@ -53,18 +53,16 @@
         <ol>
             <li ng-repeat="group in current_user.owner_groups">
                 {{group.name}}
-                <a href="" ng-click="removeGroup($index)">Remove</a>
+                <a href="" ng-click="removeGroup($index)">Remove</a> |
+                <a href="" ng-click="runMatchForMyGroup($index)">Match</a>
             </li>
         </ol>
-        <form ng-submit="runMatchForSelectedGroup()">
+        <div>
             <select ng-model="admin.selectedGroup" 
                     ng-options="group as group.name for group in current_user.owner_groups"
                     ng-change="fetchAdminResults()">
             </select>
-            <input type="submit" value="Match"/>
             <a href="#/groups/{{admin.selectedGroup.id}}/members/">Members</a>
-        </form>
-        <div>
             <div>
                 Name: {{admin.selectedGroup.name}}
             </div>
