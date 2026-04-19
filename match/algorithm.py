@@ -95,11 +95,11 @@ class Algorithm:
                 unmatch = -state.get_unmatched_count(neighbor)
                 return (match, unmatch)
             neighbors.sort(key = neighbor_compare)
-            print "neighbors:"
+            print("neighbors:")
             for neigh in neighbors:
-                print "{}: match={}, unmatch={}".format(neigh,
+                print("{}: match={}, unmatch={}".format(neigh,
                         state.get_matched_count(node, neigh),
-                        state.get_unmatched_count(neigh))
+                        state.get_unmatched_count(neigh)))
             for i in range(len(neighbors)):
                 n = neighbors[i]
                 if not n in usedNodes:
@@ -189,7 +189,7 @@ class Matcher:
     # @param p
     # @return may return None if no suitable pair could be found
     def find_crowd_pair(self, state, pairs, unmatched):
-        print "find crowd pair for {}".format(unmatched)
+        print("find crowd pair for {}".format(unmatched))
         bestCrowdScore = 99999
         bestMatchScore = 99999
         bestIndividualCrowdScore = 99999
@@ -213,8 +213,8 @@ class Matcher:
                     lowestIndiv = p1_crowd
                 else:
                     lowestIndiv = p2_crowd
-                print "pair={}, crowd score={}, match score={}, indiv score={}".format(
-                        pair, crowdScore, matchScore, lowestIndiv)
+                print("pair={}, crowd score={}, match score={}, indiv score={}".format(
+                        pair, crowdScore, matchScore, lowestIndiv))
                 if bestPair == None or crowdScore < bestCrowdScore:
                     bestPair = pair
                     bestCrowdScore = crowdScore

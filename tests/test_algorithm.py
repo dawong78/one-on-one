@@ -21,5 +21,5 @@ class AlgorithmTest(TestCase):
         model = self.create_model()
         matcher = Matcher(model)
         results = matcher.match(0)
-        print results
+        print(results)
         

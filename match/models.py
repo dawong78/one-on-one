@@ -9,15 +9,15 @@ log = logging.getLogger(__name__)
 # Create your models here.
 
 class Person(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.PROTECT)
     
     def __str__(self):
         return "username={}".format(self.user.username)
 
 class Group(models.Model):
     name = models.CharField(max_length=255)
-    people = models.ManyToManyField(Person, related_name="group.people")
-    owner = models.ForeignKey(Person, related_name="group.owner", null=True)
+    people = models.ManyToManyField(Person, related_name="group_people")
+    owner = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
     
     def __str__(self):
         return "name={}, owner={}, people={}".format(self.name, 
@@ -27,9 +27,10 @@ class Group(models.Model):
         ordering = ("name",)
     
 class Pair(models.Model):
-    group = models.ForeignKey(Group)
-    person1 = models.ForeignKey(Person, related_name="pair.person1")
-    person2 = models.ForeignKey(Person, related_name="pair.person2")
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    person1 = models.ForeignKey(Person, related_name="pair_person1", on_delete=models.PROTECT)
+    person2 = models.ForeignKey(Person, related_name="pair_person2", on_delete=models.PROTECT)
+
     def __str__(self):
         return "person1={}, person2={}".format(self.person1.user.username, 
                 self.person2.user.username)
@@ -37,8 +38,8 @@ class Pair(models.Model):
         ordering = ("group__name", "person1__user__username", "person2__user__username")
     
 class PersonState(models.Model):
-    person = models.ForeignKey(Person)
-    group = models.ForeignKey(Group)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
     unmatched_count = models.IntegerField()
     crowd_count = models.IntegerField()
     def __str__(self):
@@ -48,7 +49,7 @@ class PersonState(models.Model):
         ordering = ("group", "person")
     
 class PairState(models.Model):
-    pair = models.ForeignKey(Pair)
+    pair = models.ForeignKey(Pair, on_delete=models.PROTECT)
     match_count = models.IntegerField()
     def __str__(self):
         return "pair={}, match_count={}".format(self.pair, self.match_count)
@@ -57,15 +58,16 @@ class PairState(models.Model):
     
 class Result(models.Model):
     date_created = models.DateTimeField()
-    group = models.ForeignKey(Group, related_name="results")
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
     class Meta:
         ordering = ("date_created",)
 
 class Match(models.Model):
-    result = models.ForeignKey(Result, related_name="matches")
-    person1 = models.ForeignKey(Person, related_name="match.person1")
-    person2 = models.ForeignKey(Person, related_name="match.person2")
-    person3 = models.ForeignKey(Person, related_name="match.person3", null=True)
+    result = models.ForeignKey(Result, on_delete=models.PROTECT)
+    person1 = models.ForeignKey(Person, related_name="match_person1", on_delete=models.PROTECT)
+    person2 = models.ForeignKey(Person, related_name="match_person2", on_delete=models.PROTECT)
+    person3 = models.ForeignKey(Person, related_name="match_person3", null=True, on_delete=models.PROTECT)
+
     def __str__(self):
         if (not self.person3 is None):
             return "{}, {}, {}".format(self.person1.user.username, 

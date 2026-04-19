@@ -22,14 +22,14 @@ class ControlTest(TestCase):
         return group
     
     def print_states(self):
-        print "Printing pair states:"
+        print("Printing pair states:")
         states = PairState.objects.all()
         for state in states:
-            print state
-        print "Printing people states:"
+            print(state)
+        print("Printing people states:")
         states = PersonState.objects.all()
         for state in states:
-            print state
+            print(state)
     
     def test_run_match(self):
         group = self.create_group()

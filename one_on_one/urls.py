@@ -1,5 +1,5 @@
-from django.conf.urls import patterns, include, url
-from django.contrib import admin
+from django.urls import include, path, re_path
+# from django.contrib import admin
 
 from rest_framework import routers
 
@@ -13,11 +13,11 @@ router.register(r'results', views.ResultViewSet)
 router.register(r'matches', views.MatchViewSet)
 
 
-urlpatterns = patterns('',
-    url('', include('social.apps.django_app.urls', namespace='social')),
-    url('', include('django.contrib.auth.urls', namespace='auth')),
-    url(r'^match/rest/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^match/', include('match.urls', namespace="match")),
-    url(r'^admin/', include(admin.site.urls)),
-)
+urlpatterns = [
+    path('', include('social.apps.django_app.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    re_path(r'^match/rest/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls')),
+    path('match/', include('match.urls')),
+    # path('admin/', include(admin.site.urls)),
+]

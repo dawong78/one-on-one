@@ -4,12 +4,12 @@ from match.control import Controller
 from match.models import *
 from match.serializers import *
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.views.generic.edit import DeletionMixin
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, api_view
+from rest_framework.decorators import action, api_view
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def index(request):
     context = RequestContext(request,
                            {'request': request,
                             'user': request.user})
-    return render_to_response('match/index.html',
+    return render('match/index.html',
                              context_instance=context)
 
 @api_view(['GET'])
@@ -71,14 +71,14 @@ class GroupViewSet(viewsets.ModelViewSet,
         person = Person.objects.get(user=self.request.user)
         serializer.save(owner=person)
         
-    @detail_route(methods=["post"])
+    @action(detail=True, methods=["post"])
     def run_match(self, request, pk=None):
         group = Group.objects.get(id=pk)
         result = control.run_match(group)
         ser = ResultUrlSer(result, context={"request": request})
         return Response(ser.data)
     
-    @detail_route(methods=["post"])
+    @action(detail=True, methods=["post"])
     def add_user(self, request, pk=None):
         group = Group.objects.get(id=pk)
         person = Person.objects.get(user=request.user)
@@ -87,7 +87,7 @@ class GroupViewSet(viewsets.ModelViewSet,
         ser = GroupUrlSer(group, context={"request": request})
         return Response(ser.data, status=status.HTTP_201_CREATED)
     
-    @detail_route(methods=["post"])
+    @action(detail=True, methods=["post"])
     def remove_user_from_group(self, request, pk=None):
         group = Group.objects.get(id=pk)
         person = Person.objects.get(user=request.user)
@@ -96,7 +96,7 @@ class GroupViewSet(viewsets.ModelViewSet,
         ser = GroupUrlSer(group, context={"request": request})
         return Response(ser.data, status=status.HTTP_201_CREATED)
     
-    @detail_route(methods=["delete"])
+    @action(detail=True, methods=["delete"])
     def delete(self, request, pk=None):
         group = Group.objects.get(id=pk)
         ser = GroupUrlSer(group, context={"request": request})
