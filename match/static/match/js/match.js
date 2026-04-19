@@ -73,7 +73,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                         if ($scope.group_view.selectedGroup === null) {
                             if ($scope.group_view.selectedGroupId !== null) {
                                 // Try to find the requested group.
-                                for (var i = 0; i < $scope.groups.length; i++) {
+                                for (var i = 0; i < $scope.current_user.member_groups.length; i++) {
                                     if ($scope.group_view.selectedGroupId === $scope.current_user.member_groups[i].id) {
                                         $scope.group_view.selectedGroup = $scope.current_user.member_groups[i];
                                         break;
@@ -86,7 +86,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                             }
                         } else {
                             // Try to find the same selected group.
-                            for (var i = 0; i < $scope.groups.length; i++) {
+                            for (var i = 0; i < $scope.current_user.member_groups.length; i++) {
                                 if ($scope.group_view.selectedGroup.id === $scope.current_user.member_groups[i].id) {
                                     $scope.group_view.selectedGroup = $scope.current_user.member_groups[i];
                                     break;
@@ -126,7 +126,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         
         $scope.fetchLatestResults = function(group, container) {
             $log.debug("Fetching results for " + group.name);
-            if (group.results.length > 0) {
+            if (group.results && group.results.length > 0) {
                 var groupResults = group.results;
                 var lastResults = groupResults[groupResults.length-1];
                 $http.get(lastResults).success(function(lastData) {
@@ -246,6 +246,10 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
     .factory("Group", ["$resource", function($resource) {
             return $resource("/match/rest/groups/:group_id/", {group_id:"@id"}, 
             {
+                get: {
+                    method: "GET",
+                    url: "/match/rest/groups/:group_id"
+                },
                 run_match: {
                     method: "POST",
                     url: "/match/rest/groups/:group_id/run_match/"

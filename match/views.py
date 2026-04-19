@@ -110,6 +110,12 @@ class GroupViewSet(viewsets.ModelViewSet,
         person = Person.objects.get(user=self.request.user)
         serializer.save(owner=person)
         
+    @action(detail=True, methods=["get"])
+    def get(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        ser = ResultUrlSer(group, context={"request": request})
+        return Response(ser.data)
+    
     @action(detail=True, methods=["post"])
     def run_match(self, request, pk=None):
         group = Group.objects.get(id=pk)

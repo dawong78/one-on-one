@@ -36,9 +36,12 @@ class Controller:
         group.save()
         
     def remove_person_from_group(self, person, group):
-        newPeople = group.people.exclude(id = person.id)
-        group.people = newPeople
-        group.save()
+        try:
+            newPeople = group.people.exclude(id = person.id)
+            group.people.set(newPeople)
+            group.save()
+        except Exception as e:
+            print(e)
 
     def create_group(self, name):
         """Create a group.
@@ -99,7 +102,7 @@ class Controller:
             state = DbUtility.to_state(people, pairStates, peopleStates)
             group.state = state
             return group
-        except ValueError:
+        except ValueError as e:
             log.error(e.strerror)
             raise
 
@@ -179,7 +182,7 @@ class Controller:
             traceback.print_exc(file=sys.stdout)
     
     def get_people(self):
-        return People.objects.all()
+        return Person.objects.all()
 
     def set_crowded_count(self, person, count):
         personStateList = PersonState.objects.filter(person=person)
