@@ -1,0 +1,8 @@
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+
+.match-top-nav {
+    display: flex;
+    justify-content: flex-end;
+    padding: 5px;
+}

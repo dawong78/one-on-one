@@ -14,7 +14,6 @@ router.register(r'matches', views.MatchViewSet)
 
 
 urlpatterns = [
-    path('', include('social.apps.django_app.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     re_path(r'^match/rest/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),

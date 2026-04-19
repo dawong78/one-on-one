@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html ng-app="matchApp">
+    <head>
+        <title>Match</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-route.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-resource.js"></script>
+        <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.1.js"></script>
+        <script src="/static/match/js/match.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/match/match.css">
+    </head>
+    <body>
+        <div class="match-top-nav">
+            <a href="/match/logout">Logout</a>
+        </div>
+        <h1>Match</h1>
+        <div>
+            Hello {{ user.get_full_name|default:user.username }}!
+            <div ng-view></div>
+        </div>
+
+    </body>
+</html>

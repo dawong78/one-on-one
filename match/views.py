@@ -4,12 +4,15 @@ from match.control import Controller
 from match.models import *
 from match.serializers import *
 
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.template.context import RequestContext
 from django.views.generic.edit import DeletionMixin
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,19 +22,55 @@ control = Controller()
 
 def index(request):
     logger.info("index called")
+    context = {
+        'request': request,
+    }
+    return render(request, 'match/index.html', context)
+
+def authenticate_user(request):
+    username = request.POST["username"]
+    password = request.POST["password"]
+    user = authenticate(request, username=username, password=password)
+    if user is not None and user.is_authenticated:
+        login(request, user)
+        if username == 'admin':
+            return admin_page(request)
+        else:
+            return match_page(request)
+    context = {
+        'request': request,
+        'error_message': "Authentication failed"
+    }
+    return render(request, 'match/login.html', context)
+
+def logout_user(request):
+    logout(request)
+    context = {
+        'request': request,
+    }
+    return render(request, 'match/index.html', context)
+
+@login_required
+def match_page(request):
     user = request.user
     logger.debug("user={}".format(user))
-    if not user.is_anonymous():
+    if not user.is_anonymous:
         personList = Person.objects.filter(user=user)
         if len(personList) == 0:
             logger.info("new user added: {}".format(user))
             person = Person(user=user)
-            person.save();
-    context = RequestContext(request,
-                           {'request': request,
-                            'user': request.user})
-    return render('match/index.html',
-                             context_instance=context)
+            person.save()
+    context = {
+        'request': request,
+        'user': request.user
+    }
+    return render(request, 'match/match.html', context)
+
+def admin_page(request):
+    context = {
+        'request': request,
+    }
+    return render(request, 'match/admin.html', context)
 
 @api_view(['GET'])
 def current_user(request):
