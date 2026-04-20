@@ -149,16 +149,11 @@ class GroupViewSet(viewsets.ModelViewSet,
         ser = GroupSer(group)
         return Response(ser.data)
     
-    @action(detail=True, methods=["get"])
-    def get_latest_matches(self, request, pk=None):
+    @action(detail=True, methods=["delete"])
+    def clear_results(self, request, pk=None):
         group = Group.objects.get(id=pk)
-        exists = Result.objects.filter(group=group).exists()
-        matches = []
-        if exists:
-            latest_date = Result.objects.filter(group=group)\
-                    .aggregate(Max("date_created"))["date_created__max"]
-            result = Result.objects.get(date_created=latest_date)
-            matches = Match.objects.filter(result=result)
+        control.clear_group_results(group)
+        return Response({})
         
     
 class ResultViewSet(viewsets.ModelViewSet):

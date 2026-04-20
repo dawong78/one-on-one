@@ -60,22 +60,18 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         $scope.groups = [];
 
         $scope.selectGroupById = function(container, groups) {
-            $log.info("selecting group for " + container.viewName);
-            $log.info("selected group id: " + container.selectedGroupId);
             container.selectedGroup = null;
-            
+
             if (container.selectedGroupId >= 0) {
                 // Try to find the same selected group and update with latest results
                 for (var i = 0; i < groups.length; i++) {
                     if (container.selectedGroupId === groups[i].id) {
                         container.selectedGroup = groups[i];
-                        $log.info("found group")
                         break;
                     }
                 }
             }
             if (container.selectedGroup === null) {
-                $log.info("failed to find group")
                 // No group selected
                 // Initialize with the first group
                 if (groups.length > 0) {
@@ -97,12 +93,12 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 .success(function(data, status, headers, config) {
                     $scope.current_user.member_groups = data;
                     $scope.selectGroupById($scope.group_view, $scope.current_user.member_groups);
-                    $scope.selectGroupById($scope.admin, $scope.current_user.owner_groups);
                 }
             );
             $http.get('owner_groups')
                 .success(function(data, status, headers, config) {
                     $scope.current_user.owner_groups = data;
+                    $scope.selectGroupById($scope.admin, $scope.current_user.owner_groups);
                 }
             );
             Group.get({}, function(data) {
@@ -185,6 +181,21 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             $scope.admin.alerts = [];
         };
         
+        $scope.clearGroupResultsForMyGroup = function(index) {
+            // Run the match for a group you own
+            $scope.clearGroupResults($scope.current_user.owner_groups[index]);
+        };
+
+        $scope.clearGroupResults = function(group) {
+            Group.clear_results({group_id:group.id}, function(data) {
+                $scope.admin.alerts = [{
+                        type: "success",
+                        message: "Results cleared for group: " + group.name
+                }];
+                $scope.refresh()
+            });
+        };
+        
         $scope.runMatchForMyGroup = function(index) {
             // Run the match for a group you own
             $scope.runMatch($scope.current_user.owner_groups[index]);
@@ -237,6 +248,10 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                 remove_user_from_group: {
                     method: "POST",
                     url: "/match/rest/groups/:group_id/remove_user_from_group/"
+                },
+                clear_results: {
+                    method: "DELETE",
+                    url: "/match/rest/groups/:group_id/clear_results/"
                 }
             });
     }])

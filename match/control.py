@@ -163,6 +163,9 @@ class Controller:
         except:
             log.debug("Error saving match results")
             traceback.print_exc(file=sys.stdout)
+
+    def clear_group_results(self, group):
+        Result.objects.filter(group=group).delete()
     
     def get_people(self):
         return Person.objects.all()

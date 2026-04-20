@@ -25,6 +25,9 @@
     </tab>
     <tab heading="Register">
         <h2>Register</h2>
+        <div>
+            Select a group to join.
+        </div>
 
         <alert ng-repeat="msg in register.alerts" type="{{msg.type}}" 
                close="closeRegisterMsg()">{{msg.message}}</alert>
@@ -34,7 +37,10 @@
             </select>
             <input type="submit" value="Join"/>
         </form>
-        My Groups:
+        <h2>Unregister</h2>
+        <div>
+            Click leave to be removed from a group.
+        </div>
         <ol>
             <li ng-repeat="group in current_user.member_groups">
                 {{group.name}}
@@ -56,6 +62,7 @@
             <li ng-repeat="group in current_user.owner_groups">
                 {{group.name}}
                 <a href="" ng-click="removeGroup($index)">Remove</a> |
+                <a href="" ng-click="clearGroupResultsForMyGroup($index)">Reset</a> |
                 <a href="" ng-click="runMatchForMyGroup($index)">Match</a>
             </li>
         </ol>
