@@ -240,7 +240,7 @@ class State:
 
     def clear_matches(self):
         self.matched = []
-        for i in range(size):
+        for i in range(self.size):
             self.matched.append(list(repeat(0, self.size)))
 
     def add_unmatched(self, n):
