@@ -2,6 +2,7 @@ from itertools import repeat
 import logging
 
 from django.db import models
+from django.db.models import Max
 from django.contrib.auth.models import User
 
 log = logging.getLogger(__name__)
@@ -10,6 +11,13 @@ log = logging.getLogger(__name__)
 
 class Person(models.Model):
     user = models.OneToOneField(User, on_delete=models.PROTECT)
+
+    @property
+    def display_name(self):
+        if self.user.first_name == None or self.user.first_name == '':
+            return self.user.username
+        else:
+            return self.user.first_name + ' ' + self.user.last_name
     
     def __str__(self):
         return "username={}".format(self.user.username)
@@ -18,6 +26,16 @@ class Group(models.Model):
     name = models.CharField(max_length=255)
     people = models.ManyToManyField(Person, related_name="group_people")
     owner = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
+
+    @property
+    def latest_matches(self):
+        matches = []
+        latest_date = Result.objects.filter(group=self)\
+                .aggregate(Max("date_created"))["date_created__max"]
+        if latest_date != None:
+            result = Result.objects.get(date_created=latest_date)
+            matches = Match.objects.filter(result=result)
+        return matches
     
     def __str__(self):
         return "name={}, owner={}, people={}".format(self.name, 
@@ -263,4 +281,3 @@ class State:
 class AddPersonGroupParams(object):
     def __init__(self, person_id=-1):
         self.person_id = person_id
-        

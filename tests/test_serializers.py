@@ -31,18 +31,3 @@ class SerializersTest(TestCase):
         result.matches = [match]
         return result
         
-    def create_view_group(self):
-        group = self.create_group()
-        result = self.create_result(group)
-        view = (name=group.name)
-        view.people = group.people
-        view.matches = result.matches
-        return view
-        
-    def test_render_view_group(self):
-        group = self.create_view_group()
-        ser = GroupSer(group)
-        result = JSONRenderer().render(ser.data)
-        expected = """{"name":"group name","people":[{"id":3,"name":"name1","email":"email1"},{"id":4,"name":"name1","email":"email1"}],"matches":[{"person1":{"id":3,"name":"name1","email":"email1"},"person2":{"id":4,"name":"name1","email":"email1"},"person3":null}]}"""
-        self.assertEquals(expected, result)
-        

@@ -12,23 +12,6 @@ logger = logging.getLogger(__name__)
 
 class Controller:
 
-    def get_view_groups(self):
-        """Get all the groups and their latest matches"""
-        view_groups = []
-        groups = Group.objects.all()
-        for group in groups:
-            count = Result.objects.filter(group=group).count()
-            matches = []
-            if count > 0:
-                latest_date = Result.objects.filter(group=group)\
-                        .aggregate(Max("date_created"))["date_created__max"]
-                result = Result.objects.get(date_created=latest_date)
-                matches = Match.objects.filter(result=result)
-            view_group = Group(name=group.name, people=list(group.people.all()),
-                    matches=matches)
-            view_groups.append(view_group)
-        return view_groups
-
     def add_person_to_group(self, person, group):
         if group.people is None:
             group.people = []

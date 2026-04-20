@@ -7,17 +7,30 @@ class UserSer(serializers.ModelSerializer):
         fields = ("id", "username", "email", "first_name", "last_name")
         
 class PersonSer(serializers.ModelSerializer):
-    user = UserSer()
     class Meta:
         model = Person
-        fields = ("id", "user")
-        
+        fields = ["id", "user", "display_name"]
+
+class ResultSer(serializers.ModelSerializer):
+    date_created = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    class Meta:
+        model = Result
+        fields = ["id", "date_created"]
+
+class MatchSer(serializers.ModelSerializer):
+    person1 = PersonSer()
+    person2 = PersonSer()
+    person3 = PersonSer()
+    class Meta:
+        model = Match
+        fields = ("id", "person1", "person2", "person3")
+    
 class GroupSer(serializers.ModelSerializer):
     people = PersonSer(many=True)
-    owner = PersonSer()
+    latest_matches = MatchSer(many=True)
     class Meta:
         model = Group
-        fields = ("id", "name", "owner", "people")
+        fields = ("id", "name", "owner", "people", "latest_matches")
     
 class PairSer(serializers.ModelSerializer):
     class Meta:
@@ -34,48 +47,6 @@ class PairStateSer(serializers.ModelSerializer):
         model = PairState
         fields = ("id", "pair", "match_count")
     
-class ResultSer(serializers.ModelSerializer):
-    class Meta:
-        model = Result
-        fields = ("id", "date_created")
-
-class MatchSer(serializers.ModelSerializer):
-    person1 = PersonSer()
-    person2 = PersonSer()
-    person3 = PersonSer()
-    class Meta:
-        model = Match
-        fields = ("id", "person1", "person2", "person3")
-    
-class GroupUrlSer(serializers.ModelSerializer):
-    people = PersonSer(many="True", read_only="True")
-    owner = PersonSer(read_only="True")
-    results = serializers.HyperlinkedRelatedField(many="True", read_only="True",
-            view_name="result-detail")
-    """Define the API representation"""
-    class Meta:
-        model = Group
-        fields = ("id", "name", "owner", "people", "results")
-        
-class MatchUrlSer(serializers.ModelSerializer):
-    result = serializers.HyperlinkedRelatedField(view_name="result-detail", 
-            read_only="True")
-    person1 = PersonSer(read_only="True")
-    person2 = PersonSer(read_only="True")
-    person3 = PersonSer(read_only="True")
-    class Meta:
-        model = Match
-        fields = ("id", "result", "person1", "person2", "person3")
-
-class ResultUrlSer(serializers.HyperlinkedModelSerializer):
-    """Define the API representation"""
-    group = serializers.HyperlinkedRelatedField(view_name="group-detail", 
-            read_only="True")
-    matches = MatchUrlSer(many="True", read_only="True")
-    class Meta:
-        model = Result
-        fields = ("id", "group", "date_created", "matches")
-        
 class AddPersonGroupParamsSer(serializers.Serializer):
     person_id = serializers.IntegerField()
     def create(self, validated_data):

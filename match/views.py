@@ -6,6 +6,7 @@ from match.serializers import *
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.shortcuts import render
 from django.template.context import RequestContext
 from django.views.generic.edit import DeletionMixin
@@ -84,7 +85,7 @@ def member_groups(request):
     user = request.user
     person = Person.objects.get(user=user)
     groups = Group.objects.filter(people=person)
-    ser = GroupUrlSer(groups, many="True", context={"request": request})
+    ser = GroupSer(groups, many="True")
     return Response(ser.data)
 
 @api_view(['GET'])
@@ -92,7 +93,7 @@ def owner_groups(request):
     user = request.user
     person = Person.objects.get(user=user)
     groups = Group.objects.filter(owner=person)
-    ser = GroupUrlSer(groups, many="True", context={"request": request})
+    ser = GroupSer(groups, many="True")
     return Response(ser.data)
 
 class PeopleViewSet(viewsets.ModelViewSet):
@@ -104,7 +105,7 @@ class GroupViewSet(viewsets.ModelViewSet,
                     DeletionMixin):
     """Define view behavior"""
     queryset = Group.objects.all()
-    serializer_class = GroupUrlSer
+    serializer_class = GroupSer
     
     def perform_create(self, serializer):
         person = Person.objects.get(user=self.request.user)
@@ -113,14 +114,15 @@ class GroupViewSet(viewsets.ModelViewSet,
     @action(detail=True, methods=["get"])
     def get(self, request, pk=None):
         group = Group.objects.get(id=pk)
-        ser = ResultUrlSer(group, context={"request": request})
+        print("get group: ", group)
+        ser = GroupSer(group)
         return Response(ser.data)
     
     @action(detail=True, methods=["post"])
     def run_match(self, request, pk=None):
         group = Group.objects.get(id=pk)
         result = control.run_match(group)
-        ser = ResultUrlSer(result, context={"request": request})
+        ser = ResultSer(result)
         return Response(ser.data)
     
     @action(detail=True, methods=["post"])
@@ -129,7 +131,7 @@ class GroupViewSet(viewsets.ModelViewSet,
         person = Person.objects.get(user=request.user)
         logger.info("Adding {} to group {}".format(person, group))
         control.add_person_to_group(person, group)
-        ser = GroupUrlSer(group, context={"request": request})
+        ser = GroupSer(group)
         return Response(ser.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=["post"])
@@ -138,20 +140,32 @@ class GroupViewSet(viewsets.ModelViewSet,
         person = Person.objects.get(user=request.user)
         logger.info("Removing {} from group {}".format(person, group))
         control.remove_person_from_group(person, group)
-        ser = GroupUrlSer(group, context={"request": request})
+        ser = GroupSer(group)
         return Response(ser.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=["delete"])
     def delete(self, request, pk=None):
         group = Group.objects.get(id=pk)
-        ser = GroupUrlSer(group, context={"request": request})
+        ser = GroupSer(group)
         return Response(ser.data)
+    
+    @action(detail=True, methods=["get"])
+    def get_latest_matches(self, request, pk=None):
+        group = Group.objects.get(id=pk)
+        exists = Result.objects.filter(group=group).exists()
+        matches = []
+        if exists:
+            latest_date = Result.objects.filter(group=group)\
+                    .aggregate(Max("date_created"))["date_created__max"]
+            result = Result.objects.get(date_created=latest_date)
+            matches = Match.objects.filter(result=result)
+        
     
 class ResultViewSet(viewsets.ModelViewSet):
     queryset = Result.objects.all()
-    serializer_class = ResultUrlSer
-    
+    serializer_class = ResultSer
+
 class MatchViewSet(viewsets.ModelViewSet):
     queryset = Match.objects.all()
-    serializer_class = MatchUrlSer
+    serializer_class = MatchSer
     

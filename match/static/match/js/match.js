@@ -31,13 +31,18 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
     .controller("MatchController", ["$scope", "$http", "$routeParams", "Group", "Person", "$log",
             function ($scope, $http, $routeParams, Group, Person, $log) {
         $scope.group_view = {
+            message: null,
             selectedGroup: null,
-            selectedResults: null
+            selectedGroupId: -1,
+            selectedResults: null,
+            viewName: "group"
         };
         $scope.admin = {
             alerts: [],
             selectedGroup: null,
-            selectedResults: null
+            selectedGroupId: -1,
+            selectedResults: null,
+            viewName: "admin"
         };
         $scope.register = {
             alerts: []
@@ -48,14 +53,36 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             owner_groups: []
         };
         
-        $scope.group_view.selectedGroupId = -1;
         if ($routeParams.group_id != null) {
             $scope.group_view.selectedGroupId = parseInt($routeParams.group_id);
+            $scope.admin.selectedGroupId = parseInt($routeParams.group_id);
         }
         $scope.groups = [];
-        $scope.group_view.selectedGroup = null;
-        $scope.group_view.selectedResults = null;
-        $scope.group_view.message = null;
+
+        $scope.selectGroupById = function(container, groups) {
+            $log.info("selecting group for " + container.viewName);
+            $log.info("selected group id: " + container.selectedGroupId);
+            container.selectedGroup = null;
+            
+            if (container.selectedGroupId >= 0) {
+                // Try to find the same selected group and update with latest results
+                for (var i = 0; i < groups.length; i++) {
+                    if (container.selectedGroupId === groups[i].id) {
+                        container.selectedGroup = groups[i];
+                        $log.info("found group")
+                        break;
+                    }
+                }
+            }
+            if (container.selectedGroup === null) {
+                $log.info("failed to find group")
+                // No group selected
+                // Initialize with the first group
+                if (groups.length > 0) {
+                    container.selectedGroup = groups[0];
+                }
+            }
+        }
         
         $scope.refresh = function() {
             $http.get('current_user')
@@ -69,33 +96,8 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             $http.get('member_groups')
                 .success(function(data, status, headers, config) {
                     $scope.current_user.member_groups = data;
-                    if ($scope.current_user.member_groups.length > 0) {
-                        if ($scope.group_view.selectedGroup === null) {
-                            if ($scope.group_view.selectedGroupId !== null) {
-                                // Try to find the requested group.
-                                for (var i = 0; i < $scope.current_user.member_groups.length; i++) {
-                                    if ($scope.group_view.selectedGroupId === $scope.current_user.member_groups[i].id) {
-                                        $scope.group_view.selectedGroup = $scope.current_user.member_groups[i];
-                                        break;
-                                    }
-                                }
-                            }
-                            if ($scope.group_view.selectedGroup === null) {
-                                // Initialize with the first group
-                                $scope.group_view.selectedGroup = $scope.current_user.member_groups[0];
-                            }
-                        } else {
-                            // Try to find the same selected group.
-                            for (var i = 0; i < $scope.current_user.member_groups.length; i++) {
-                                if ($scope.group_view.selectedGroup.id === $scope.current_user.member_groups[i].id) {
-                                    $scope.group_view.selectedGroup = $scope.current_user.member_groups[i];
-                                    break;
-                                }
-                            }
-                        }
-                        $scope.fetchGroupResults();
-                        $scope.fetchAdminResults();
-                    }
+                    $scope.selectGroupById($scope.group_view, $scope.current_user.member_groups);
+                    $scope.selectGroupById($scope.admin, $scope.current_user.owner_groups);
                 }
             );
             $http.get('owner_groups')
@@ -106,33 +108,6 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             Group.get({}, function(data) {
                 $scope.groups = data.results;
             });
-        };
-        
-        $scope.fetchGroupResults = function() {
-            if ($scope.group_view.selectedGroup !== null) {
-                $scope.group_view.selectedResults = 
-                        $scope.fetchLatestResults($scope.group_view.selectedGroup,
-                            $scope.group_view);
-            }
-        };
-        
-        $scope.fetchAdminResults = function() {
-            if ($scope.admin.selectedGroup !== null) {
-                $scope.admin.selectedResults = 
-                        $scope.fetchLatestResults($scope.admin.selectedGroup,
-                            $scope.admin);
-            }
-        };
-        
-        $scope.fetchLatestResults = function(group, container) {
-            $log.debug("Fetching results for " + group.name);
-            if (group.results && group.results.length > 0) {
-                var groupResults = group.results;
-                var lastResults = groupResults[groupResults.length-1];
-                $http.get(lastResults).success(function(lastData) {
-                    container.selectedResults = lastData;
-                });
-            }
         };
         
         $scope.addUser = function() {
@@ -227,6 +202,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                             type: "success",
                             message: "Matches made for " + group.name
                     }];
+                    $scope.admin.selectedGroupId = group.id
                     $scope.refresh();
                 });
             });
@@ -234,12 +210,12 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         
         $scope.refresh();
     }])
-    .controller("GroupController", ["$scope", "Group", "$routeParams", 
-            function ($scope, Group, $routeParams) {
+    .controller("GroupController", ["$scope", "Group", "$routeParams", "$log",
+            function ($scope, Group, $routeParams, $log) {
         $scope.group_id = $routeParams.group_id;
         $scope.members = [];
         Group.get({group_id:$scope.group_id}, function(result) {
-                $scope.members = result.people;
+            $scope.members = result.people;
         });
             
     }])

@@ -1,9 +1,11 @@
 <tabset>
     <tab heading="Groups">
         <h2>Groups</h2>
+        <div ng-if="current_user.member_groups.length == 0" class="error-text">
+            You are not a member of any groups.  Please Register to join a group.
+        </div>
         <select ng-model="group_view.selectedGroup" 
-                ng-options="group as group.name for group in current_user.member_groups"
-                ng-change="fetchGroupResults()">
+                ng-options="group as group.name for group in current_user.member_groups">
         </select>
         <div>
             <div>
@@ -12,10 +14,10 @@
             <div>
                 Match-ups:
                 <ol>
-                    <li ng-repeat="match in group_view.selectedResults.matches">
-                        {{match.person1.user.first_name}}  {{match.person1.user.last_name}}, 
-                        {{match.person2.user.first_name}}  {{match.person2.user.last_name}}, 
-                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}
+                    <li ng-repeat="match in group_view.selectedGroup.latest_matches">
+                        {{match.person1.display_name}}, 
+                        {{match.person2.display_name}}, 
+                        {{match.person3.display_name}}
                     </li>
                 </ol>
             </div>
@@ -58,6 +60,9 @@
             </li>
         </ol>
         <div>
+            <div ng-if="current_user.owner_groups.length == 0" class="error-text">
+                You do not own any groups.  Create a new group that you would like to administer.
+            </div>
             <select ng-model="admin.selectedGroup" 
                     ng-options="group as group.name for group in current_user.owner_groups"
                     ng-change="fetchAdminResults()">
@@ -69,10 +74,10 @@
             <div>
                 Match-ups:
                 <ol>
-                    <li ng-repeat="match in admin.selectedResults.matches">
-                        {{match.person1.user.first_name}}  {{match.person1.user.last_name}}, 
-                        {{match.person2.user.first_name}}  {{match.person2.user.last_name}}, 
-                        {{match.person3.user.first_name}}  {{match.person3.user.last_name}}
+                    <li ng-repeat="match in admin.selectedGroup.latest_matches">
+                        {{match.person1.display_name}}, 
+                        {{match.person2.display_name}}, 
+                        {{match.person3.display_name}}
                     </li>
                 </ol>
             </div>

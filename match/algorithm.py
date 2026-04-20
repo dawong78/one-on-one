@@ -247,9 +247,10 @@ class DbUtility:
     def to_state(people, pairStates, peopleStates):
         state = State(len(people))
         for pairState in pairStates:
-            index1 = people.index(pairState.pair.person1)
-            index2 = people.index(pairState.pair.person2)
-            state.set_matched(index1, index2, pairState.match_count)
+            if pairState.pair.person1 in people and pairState.pair.person2 in people:
+                index1 = people.index(pairState.pair.person1)
+                index2 = people.index(pairState.pair.person2)
+                state.set_matched(index1, index2, pairState.match_count)
         for personState in peopleStates:
             index = people.index(personState.person)
             state.set_unmatched(index, personState.unmatched_count)
