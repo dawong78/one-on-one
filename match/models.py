@@ -24,12 +24,12 @@ class Person(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=255)
-    people = models.ManyToManyField(Person, related_name="group_people")
+    people = models.ManyToManyField(Person, related_name="group_people", blank=True)
     owner = models.ForeignKey(Person, null=True, on_delete=models.CASCADE)
 
     @property
     def latest_matches(self):
-        matches = []
+        matches = None
         latest_date = Result.objects.filter(group=self)\
                 .aggregate(Max("date_created"))["date_created__max"]
         if latest_date != None:

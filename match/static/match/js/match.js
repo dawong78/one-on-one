@@ -141,6 +141,8 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             $log.debug("add group name: " + $scope.admin.add_group_name);
             var newGroup = new Group();
             newGroup.name = $scope.admin.add_group_name;
+            newGroup.people = []
+            newGroup.latest_matches = []
             Group.save(newGroup, function(savedGroup) {
                 // Success
                 $scope.admin.alerts = [{
@@ -221,14 +223,48 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
         
         $scope.refresh();
     }])
-    .controller("GroupController", ["$scope", "Group", "$routeParams", "$log",
-            function ($scope, Group, $routeParams, $log) {
+    .controller("GroupController", ["$scope", "Group", "Person", "$routeParams", "$log",
+            function ($scope, Group, Person, $routeParams, $log) {
         $scope.group_id = $routeParams.group_id;
-        $scope.members = [];
-        Group.get({group_id:$scope.group_id}, function(result) {
-            $scope.members = result.people;
-        });
-            
+        $scope.group = null;
+        $scope.people = [];
+        $scope.addable_people = [];
+        $scope.refresh = function() {
+            Group.get({group_id:$scope.group_id}, function(data) {
+                $scope.group = data
+                Person.list({}, function(data) {
+                    $scope.people = data.results
+                    let group_people_ids = new Set();
+                    for (let i = 0; i < $scope.group.people.length; i++) {
+                        group_people_ids.add($scope.group.people[i].id);
+                    }
+                    $scope.addable_people = []
+                    $log.info($scope.group.people);
+                    for (let i = 0; i < $scope.people.length; i++) {
+                        if (!group_people_ids.has($scope.people[i].id)) {
+                            $scope.addable_people.push($scope.people[i])
+                        }
+                    }
+                });
+            });
+        };
+
+        $scope.add_person = function(person_id) {
+            Group.get({group_id: $scope.group.id}, function(data) {
+                data.$add_person({person_id: person_id}, function() {
+                    $scope.refresh();
+                });
+            });
+        };
+        $scope.remove_person = function(person_id) {
+            Group.get({group_id: $scope.group.id}, function(data) {
+                data.$remove_person({person_id: person_id}, function() {
+                    $scope.refresh();
+                });
+            });
+        }
+
+        $scope.refresh();
     }])
     .factory("Group", ["$resource", function($resource) {
             return $resource("/match/rest/groups/:group_id/", {group_id:"@id"}, 
@@ -245,6 +281,14 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                     method: "POST",
                     url: "/match/rest/groups/:group_id/add_user/"
                 },
+                add_person: {
+                    method: "POST",
+                    url: "/match/rest/groups/:group_id/add_person/"
+                },
+                remove_person: {
+                    method: "POST",
+                    url: "/match/rest/groups/:group_id/remove_person/"
+                },
                 remove_user_from_group: {
                     method: "POST",
                     url: "/match/rest/groups/:group_id/remove_user_from_group/"
@@ -256,5 +300,11 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             });
     }])
     .factory("Person", ["$resource", function($resource) {
-            return $resource("/match/rest/people/:person_id/", {person_id:"@id"});
+            return $resource("/match/rest/people/:person_id/", {person_id:"@id"},
+            {
+                list: {
+                    method: "GET",
+                    url: "/match/rest/people/"
+                }
+            });
     }]);

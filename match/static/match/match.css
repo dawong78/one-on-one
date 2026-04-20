@@ -6,6 +6,9 @@
     justify-content: flex-end;
     padding: 5px;
 }
+.match-top-nav span {
+    padding: 0px 5px 0px 5px;
+}
 
 .error-text {
     color: red;

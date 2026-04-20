@@ -114,7 +114,6 @@ class GroupViewSet(viewsets.ModelViewSet,
     @action(detail=True, methods=["get"])
     def get(self, request, pk=None):
         group = Group.objects.get(id=pk)
-        print("get group: ", group)
         ser = GroupSer(group)
         return Response(ser.data)
     
@@ -135,13 +134,33 @@ class GroupViewSet(viewsets.ModelViewSet,
         return Response(ser.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=["post"])
+    def add_person(self, request, pk=None):
+        person_id = request.query_params.get('person_id')
+        group = Group.objects.get(id=pk)
+        person = Person.objects.get(id=person_id)
+        logger.info("Adding {} to group {}".format(person, group))
+        control.add_person_to_group(person, group)
+        ser = GroupSer(group)
+        return Response(ser.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=["post"])
+    def remove_person(self, request, pk=None):
+        person_id = request.query_params.get('person_id')
+        group = Group.objects.get(id=pk)
+        person = Person.objects.get(id=person_id)
+        logger.info("Removing {} from group {}".format(person, group))
+        control.remove_person_from_group(person, group)
+        ser = GroupSer(group)
+        return Response(ser.data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=["post"])
     def remove_user_from_group(self, request, pk=None):
         group = Group.objects.get(id=pk)
         person = Person.objects.get(user=request.user)
         logger.info("Removing {} from group {}".format(person, group))
         control.remove_person_from_group(person, group)
         ser = GroupSer(group)
-        return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=["delete"])
     def delete(self, request, pk=None):

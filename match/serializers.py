@@ -26,8 +26,8 @@ class MatchSer(serializers.ModelSerializer):
         fields = ("id", "person1", "person2", "person3")
     
 class GroupSer(serializers.ModelSerializer):
-    people = PersonSer(many=True)
-    latest_matches = MatchSer(many=True)
+    people = PersonSer(many=True, read_only=True)
+    latest_matches = MatchSer(many=True, read_only=True)
     class Meta:
         model = Group
         fields = ("id", "name", "owner", "people", "latest_matches")

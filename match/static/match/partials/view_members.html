@@ -1,7 +1,22 @@
 <div>
-    Members:
-    <ol>
-        <li ng-repeat="member in members">{{member}} - {{member.display_name}}</li>
-    </ol>
+    <div>
+        Group Name: {{ group.name }}
+    </div>
+    <div>
+        Members:
+        <ol>
+            <li ng-repeat="person in group.people">{{person.display_name}}
+                <a href="" ng-click="remove_person(person.id)">Remove</a>
+            </li>
+        </ol>
+    </div>
+    <div>
+        People:
+        <ul>
+            <li ng-repeat="person in addable_people">{{person.display_name}}
+                <a href="" ng-click="add_person(person.id)">Add</a>
+            </li>
+        </ul>
+    </div>
     <a href="#/groups/{{group_id}}/">Back</a>
 </div>

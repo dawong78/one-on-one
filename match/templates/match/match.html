@@ -14,11 +14,12 @@
     </head>
     <body>
         <div class="match-top-nav">
-            <a href="/match/logout">Logout</a>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+            |
+            <span><a href="/match/logout">Logout</a></span>
         </div>
         <h1>Match</h1>
         <div>
-            Hello {{ user.get_full_name|default:user.username }}!
             <div ng-view></div>
         </div>
 
