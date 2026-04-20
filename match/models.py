@@ -28,6 +28,12 @@ class Group(models.Model):
     owner = models.ForeignKey(Person, null=True, on_delete=models.CASCADE)
 
     @property
+    def latest_result_date(self):
+        latest_date = Result.objects.filter(group=self)\
+                .aggregate(Max("date_created"))["date_created__max"]
+        return latest_date
+    
+    @property
     def latest_matches(self):
         matches = None
         latest_date = Result.objects.filter(group=self)\

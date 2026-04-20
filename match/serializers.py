@@ -30,7 +30,7 @@ class GroupSer(serializers.ModelSerializer):
     latest_matches = MatchSer(many=True, read_only=True)
     class Meta:
         model = Group
-        fields = ("id", "name", "owner", "people", "latest_matches")
+        fields = ("id", "name", "owner", "people", "latest_result_date", "latest_matches")
     
 class PairSer(serializers.ModelSerializer):
     class Meta:

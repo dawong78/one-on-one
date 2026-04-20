@@ -60,7 +60,7 @@
         Owned Groups:
         <ol>
             <li ng-repeat="group in current_user.owner_groups">
-                {{group.name}}
+                {{group.name}} {{group.latest_result_date}}
                 <a href="" ng-click="removeGroup($index)">Remove</a> |
                 <a href="" ng-click="clearGroupResultsForMyGroup($index)">Reset</a> |
                 <a href="" ng-click="runMatchForMyGroup($index)">Match</a>

@@ -53,14 +53,7 @@ def logout_user(request):
 
 @login_required
 def match_page(request):
-    user = request.user
-    logger.debug("user={}".format(user))
-    if not user.is_anonymous:
-        personList = Person.objects.filter(user=user)
-        if len(personList) == 0:
-            logger.info("new user added: {}".format(user))
-            person = Person(user=user)
-            person.save()
+    control.sync_user_to_person()
     context = {
         'request': request,
         'user': request.user
@@ -107,10 +100,6 @@ class GroupViewSet(viewsets.ModelViewSet,
     queryset = Group.objects.all()
     serializer_class = GroupSer
     
-    def perform_create(self, serializer):
-        person = Person.objects.get(user=self.request.user)
-        serializer.save(owner=person)
-        
     @action(detail=True, methods=["get"])
     def get(self, request, pk=None):
         group = Group.objects.get(id=pk)

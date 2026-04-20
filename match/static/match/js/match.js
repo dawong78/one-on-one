@@ -238,6 +238,8 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                     for (let i = 0; i < $scope.group.people.length; i++) {
                         group_people_ids.add($scope.group.people[i].id);
                     }
+                    $log.info("group people ids")
+                    $log.info(group_people_ids)
                     $scope.addable_people = []
                     $log.info($scope.group.people);
                     for (let i = 0; i < $scope.people.length; i++) {

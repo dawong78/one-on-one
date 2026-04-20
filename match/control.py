@@ -6,11 +6,23 @@ import os
 import sys
 import traceback
 from datetime import datetime
-from django.db.models import Max
+from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
 
 class Controller:
+
+    def sync_user_to_person(self):
+        """
+        Create a person object for each user
+        """
+        user_list = User.objects.all()
+        for user in user_list:
+            logger.info("checking " + user.username)
+            found = Person.objects.filter(user=user).exists()
+            if not found:
+                person = Person(user=user)
+                person.save()
 
     def add_person_to_group(self, person, group):
         if group.people is None:
@@ -166,6 +178,7 @@ class Controller:
 
     def clear_group_results(self, group):
         Result.objects.filter(group=group).delete()
+        Pair.objects.filter(group=group).delete()
     
     def get_people(self):
         return Person.objects.all()
