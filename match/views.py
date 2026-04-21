@@ -163,6 +163,16 @@ class GroupViewSet(viewsets.ModelViewSet,
         control.clear_group_results(group)
         return Response({})
         
+    @action(detail=False, methods=['get'])
+    def member_group_ids(self, request, pk=None):
+        user = request.user
+        person = Person.objects.get(user=user)
+        groups = Group.objects.filter(people=person)
+        group_ids = []
+        for group in groups:
+            group_ids.append(group.id)
+        return Response(group_ids)
+
     
 class ResultViewSet(viewsets.ModelViewSet):
     queryset = Result.objects.all()

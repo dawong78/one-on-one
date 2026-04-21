@@ -1,0 +1,55 @@
+<div id="main">
+    <div>
+      <app-login onLoggedIn="refresh()"/>
+    </div>
+    <div>
+      <button (click)="refresh()">Refresh</button>
+    </div>
+    <div>
+        <h1>Groups</h1>
+        @for (group of groups(); track group.id) {
+          <div>
+            <h2>{{ group.name }}</h2>
+            <div>
+              Matches:
+              <ul>
+                @for (match of group.latest_matches; track match.id) {
+                  <li>
+                    {{ match.person1?.display_name }},
+                  </li>
+                }
+              </ul>
+            </div>
+            <div>
+              People:
+              <ul>
+                @for (person of group.people; track person.id) {
+                  <li>{{ person.display_name }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+    </div>
+    <div>
+      <h1>Register</h1>
+      @for (group of groups(); track group.id) {
+        <div>
+          {{ group.name }} <button (click)="join_group()">Join</button>
+        </div>
+      }
+    </div>
+    <div>
+      <h1>Admin</h1>
+      <div>
+        New Group Name - {{ new_group_name.value }}
+        <input type="text" [formControl]="new_group_name">
+        <button (click)="add_group()">Add</button>
+      </div>
+      <div>
+        Owned Groups: {{ member_group_ids }}
+      </div>
+    </div>
+</div>
+
+<router-outlet />
