@@ -16,9 +16,9 @@ export class App implements OnInit{
   private dataService = inject(Data)
 
   groups = signal<any[]>([]);
-  member_group_ids: number[] = [];
+  memberGroupIds: number[] = [];
 
-  new_group_name = new FormControl('');
+  newGroupName = new FormControl('');
 
   ngOnInit(): void {
     this.refresh();
@@ -29,7 +29,7 @@ export class App implements OnInit{
       this.groups.set(data)
     });
     this.dataService.getMemberGroupIds().subscribe((data: number[]) => {
-      this.member_group_ids = data;
+      this.memberGroupIds = data;
     })
   }
 
@@ -37,10 +37,28 @@ export class App implements OnInit{
     console.log("join group called");
   }
 
-  async add_group() {
-    const newGroup = new Group(this.new_group_name.value);
+  async addGroup() {
+    const newGroup = new Group(this.newGroupName.value);
     this.dataService.addGroup(newGroup).subscribe((data: any) => {
       this.refresh();
     });
+  }
+
+  removeGroup(groupId: number) {
+    this.dataService.removeGroup(groupId).subscribe((data: any) => {
+      this.refresh();
+    });
+  }
+
+  resetGroup(groupId: number) {
+    this.dataService.resetGroup(groupId).subscribe((data: any) => {
+      this.refresh();
+    })
+  }
+
+  matchGroup(groupId: number) {
+    this.dataService.matchGroup(groupId).subscribe((data: any) => {
+      this.refresh();
+    })
   }
 }
