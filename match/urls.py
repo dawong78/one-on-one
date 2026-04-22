@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, re_path
 from django.conf.urls.static import static
@@ -13,7 +12,6 @@ urlpatterns = [
     re_path(r'^current_user$', views.current_user, name="current-user"),
     re_path(r'^member_groups$', views.member_groups, name="member-groups"),
     re_path(r'^owner_groups$', views.owner_groups, name="owner-groups"),
-    path('admin/', admin.site.urls)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -11,12 +11,13 @@ import { Login } from './login/login';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit{
+export class App implements OnInit {
   protected readonly title = signal('one-on-one');
   private dataService = inject(Data)
 
   groups = signal<any[]>([]);
-  memberGroupIds: number[] = [];
+  memberGroupIds = signal<number[]>([]);
+  ownedGroupIds = signal<number[]>([]);
 
   newGroupName = new FormControl('');
 
@@ -26,11 +27,14 @@ export class App implements OnInit{
 
   refresh(): void {
     this.dataService.getGroups().subscribe((data: any[]) => {
-      this.groups.set(data)
+      this.groups.set(data);
+      this.dataService.getMemberGroupIds().subscribe((data: number[]) => {
+        this.memberGroupIds.set(data);
+      });
+      this.dataService.getOwnedGroupIds().subscribe((data: number[]) => {
+        this.ownedGroupIds.set(data);
+      });
     });
-    this.dataService.getMemberGroupIds().subscribe((data: number[]) => {
-      this.memberGroupIds = data;
-    })
   }
 
   join_group(): void {

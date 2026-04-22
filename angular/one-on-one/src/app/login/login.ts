@@ -1,6 +1,7 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Auth } from '../auth';
+import { Data } from '../data';
 
 @Component({
   selector: 'app-login',
@@ -8,11 +9,12 @@ import { Auth } from '../auth';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login {
+export class Login implements OnInit {
   loginForm: FormGroup;
   private authService = inject(Auth);
+  private dataService = inject(Data);
 
-  login_status = signal('Not Logged In');
+  loginStatus = signal('Not Logged In');
 
   onLoggedIn = output<any>();
 
@@ -24,15 +26,30 @@ export class Login {
     });
   }
 
-  onSubmit() {
+  ngOnInit(): void {
+    this.checkIsLoggedIn();
+  };
+
+  checkIsLoggedIn(): void {
+    this.dataService.getCurrentUser().subscribe({
+      next: (data) => {
+        if (data) {
+          this.loginStatus.set('Logged In')
+        } else {
+          this.loginStatus.set('Not Logged In');
+        }
+          this.onLoggedIn.emit(this.loginStatus());
+      }
+    })
+  }
+
+  onSubmit(): void {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value.username, this.loginForm.value.password).subscribe({
         next: (data: any) => {
           localStorage.setItem('access_token', data.access);
           localStorage.setItem('refresh_token', data.refresh);
-          console.log("login success");
-          this.login_status.set('Logged In');
-          this.onLoggedIn.emit('loggin success')
+          this.checkIsLoggedIn();
         },
         error: (err) => {
           console.error(err);

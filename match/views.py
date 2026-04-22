@@ -172,6 +172,17 @@ class GroupViewSet(viewsets.ModelViewSet,
         for group in groups:
             group_ids.append(group.id)
         return Response(group_ids)
+    
+    @action(detail=False, methods=['get'])
+    def owner_group_ids(self, request, pk=None):
+        user = request.user
+        person = Person.objects.get(user=user)
+        groups = Group.objects.filter(owner=person)
+        group_ids = []
+        for group in groups:
+            group_ids.append(group.id)
+        return Response(group_ids)
+
 
     
 class ResultViewSet(viewsets.ModelViewSet):

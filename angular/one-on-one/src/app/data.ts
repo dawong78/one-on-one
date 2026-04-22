@@ -11,8 +11,11 @@ export class Data {
   private http = inject(HttpClient);
   private apiUrl = "http://localhost:8000/";
 
+  matchUrl() {
+    return this.apiUrl + "match/"
+  }
   restUrl() {
-    return this.apiUrl + "match/rest/";
+    return this.matchUrl() + "rest/";
   }
   groupUrl() {
     return this.restUrl() + "groups/";
@@ -26,8 +29,6 @@ export class Data {
   }
 
   addGroup(group: Group): Observable<any> {
-    // const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    // return this.http.post<any>(this.groupUrl(), group, { headers });
     return this.http.post<any>(this.groupUrl(), group);
   }
 
@@ -46,4 +47,13 @@ export class Data {
   getMemberGroupIds(): Observable<number[]> {
     return this.http.get<number[]>(this.groupUrl() + 'member_group_ids/')
   }
+
+  getOwnedGroupIds(): Observable<number[]> {
+    return this.http.get<number[]>(this.groupUrl() + 'owner_group_ids/')
+  }
+
+  getCurrentUser(): Observable<any> {
+    return this.http.get<any>(this.matchUrl() + 'current_user');
+  }
+
 }
