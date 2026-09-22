@@ -21,35 +21,36 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         Authorization: `Bearer ${access_token}`
       }
     });
-    // return next(cloned);
     return next(cloned).pipe(
       catchError(error => {
         if (error instanceof HttpErrorResponse && error.status === 401) {
-          console.log("encountered jwt error");
-          console.log(error);
           if (!isRefreshing) {
             isRefreshing = true;
             refreshTokenSubject.next(null);
 
-            const refresh_token = localStorage.getItem('refresh_token') ?? '';
-            return authService.refreshToken(refresh_token).pipe(
-              switchMap((newToken) => {
-                isRefreshing = false;
-                refreshTokenSubject.next(newToken.access)
-                localStorage.setItem('access_token', newToken.access);
-                localStorage.setItem('refresh_token', newToken.refresh);
-                const refreshedRequest = req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${newToken.access}`
-                  }
-                });
-                return next(refreshedRequest);
-              }),
-              catchError((err) => {
-                isRefreshing = false;
-                return throwError(() => err);
-              })
-            );
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (refreshToken == null || refreshToken === '' || refreshToken === 'undefined') {
+              return throwError(() => error)
+            } else {
+              return authService.refreshToken(refreshToken).pipe(
+                switchMap((newToken) => {
+                  isRefreshing = false;
+                  refreshTokenSubject.next(newToken.access)
+                  localStorage.setItem('access_token', newToken.access);
+                  localStorage.setItem('refresh_token', newToken.refresh);
+                  const refreshedRequest = req.clone({
+                    setHeaders: {
+                      Authorization: `Bearer ${newToken.access}`
+                    }
+                  });
+                  return next(refreshedRequest);
+                }),
+                catchError((err) => {
+                  isRefreshing = false;
+                  return throwError(() => err);
+                })
+              );
+            }
           }
           // Queue subsequent requests while refreshing
           return refreshTokenSubject.pipe(

@@ -17,11 +17,18 @@ export class Data {
   restUrl() {
     return this.matchUrl() + "rest/";
   }
+  peopleUrl() {
+    return this.restUrl() + 'people/';
+  }
   groupUrl() {
     return this.restUrl() + "groups/";
   }
   groupIdUrl(groupId: number) {
     return this.restUrl() + "groups/" + groupId + "/";
+  }
+
+  getPeople(): Observable<any[]> {
+    return this.http.get<any[]>(this.peopleUrl());
   }
 
   getGroups(): Observable<any[]> {
@@ -30,6 +37,10 @@ export class Data {
 
   addGroup(group: Group): Observable<any> {
     return this.http.post<any>(this.groupUrl(), group);
+  }
+
+  updateGroup(group: Group): Observable<any> {
+    return this.http.put<any>(this.groupIdUrl(group.id), group);
   }
 
   removeGroup(groupId: number): Observable<any> {

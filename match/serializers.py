@@ -26,12 +26,38 @@ class MatchSer(serializers.ModelSerializer):
         fields = ("id", "person1", "person2", "person3")
     
 class GroupSer(serializers.ModelSerializer):
-    people = PersonSer(many=True, read_only=True)
+    people = serializers.PrimaryKeyRelatedField(many=True, queryset=Person.objects.all())
     latest_matches = MatchSer(many=True, read_only=True)
     class Meta:
         model = Group
         fields = ("id", "name", "owner", "people", "latest_result_date", "latest_matches")
-    
+
+    def create(self, validated_data):
+        owner = validated_data.pop('owner', None)
+        print("group create owner: ", owner)
+        people = validated_data.pop('people', None)
+
+        group = Group.objects.create(**validated_data)
+        # update owner
+        if owner == None:
+            group.owner = None
+        else:
+            db_owner = Person.objects.get(id=owner.id)
+            group.owner = db_owner
+
+        # update people
+        if people == None:
+            group.people.set([])
+        else:
+            if group.people is None:
+                group.people.set([])
+            for person in people:
+                db_person = Person.objects.get(id=person.id)
+                group.people.add(db_person)
+
+        group.save()
+        return group
+
 class PairSer(serializers.ModelSerializer):
     class Meta:
         model = Pair

@@ -26,7 +26,7 @@ class Controller:
 
     def add_person_to_group(self, person, group):
         if group.people is None:
-            group.people = []
+            group.people.set([])
         group.people.add(person)
         group.save()
         
@@ -138,7 +138,6 @@ class Controller:
             result = Result.objects.create(group=group,
                     date_created=datetime.now())
             result.save()
-            matches = []
             pairs = match_results.pairs
             unmatchedPerson = match_results.unmatched
             unmatchedPair = match_results.unmatched_pair
@@ -152,7 +151,6 @@ class Controller:
                     if pair == unmatchedPair:
                         match.person3 = unmatchedPerson
                     match.save()
-                    matches.append(match)
                     
                     # Update pair state
                     self.incr_match_count(group, pair.person1,
@@ -167,8 +165,6 @@ class Controller:
                         unmatchedPerson, 1)
                 self.incr_match_count(group, unmatchedPair.person2,
                         unmatchedPerson, 1)
-            result.matches = matches
-            result.save()
             
             log.debug("finished saving match_results")
             return result

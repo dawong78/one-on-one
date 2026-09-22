@@ -101,8 +101,11 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
                     $scope.selectGroupById($scope.admin, $scope.current_user.owner_groups);
                 }
             );
-            Group.get({}, function(data) {
+            Group.query({}, function(data) {
                 $scope.groups = data.results;
+            });
+            Person.list({}, function(data) {
+                $scope.people = data.results;
             });
         };
         
@@ -141,8 +144,7 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             $log.debug("add group name: " + $scope.admin.add_group_name);
             var newGroup = new Group();
             newGroup.name = $scope.admin.add_group_name;
-            newGroup.people = []
-            newGroup.latest_matches = []
+            newGroup.owner = $scope.current_user.user.id;
             Group.save(newGroup, function(savedGroup) {
                 // Success
                 $scope.admin.alerts = [{
@@ -174,8 +176,9 @@ angular.module("matchApp", ["ngRoute", "ngResource", "ui.bootstrap"])
             var group = $scope.current_user.owner_groups[index];
             $log.debug("removing group " + group.ame);
             Group.get({group_id:group.id}, function(data) {
-                data.$delete();
-                $scope.refresh();
+                data.$delete(function() {
+                  $scope.refresh();
+                });
             });
         }
         

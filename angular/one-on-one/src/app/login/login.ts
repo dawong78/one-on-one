@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, output, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Auth } from '../auth';
 import { Data } from '../data';
 
@@ -31,14 +32,27 @@ export class Login implements OnInit {
   };
 
   checkIsLoggedIn(): void {
+    const refreshToken = localStorage.getItem('refresh_token');
+    console.log("refresh token: " + refreshToken);
+    if (refreshToken == null || refreshToken === '' || refreshToken === 'undefined') {
+      this.loginStatus.set('Not Logged In');
+      this.onLoggedIn.emit(this.loginStatus());
+    }
     this.dataService.getCurrentUser().subscribe({
       next: (data) => {
+        console.log("login check success");
+        console.log(data);
         if (data) {
           this.loginStatus.set('Logged In')
         } else {
           this.loginStatus.set('Not Logged In');
         }
-          this.onLoggedIn.emit(this.loginStatus());
+        this.onLoggedIn.emit(this.loginStatus());
+      },
+      error: (err) => {
+        console.log("error checking logged in");
+        this.loginStatus.set('Not Logged In');
+        this.onLoggedIn.emit(this.loginStatus());
       }
     })
   }

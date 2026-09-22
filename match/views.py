@@ -84,8 +84,11 @@ def member_groups(request):
 @api_view(['GET'])
 def owner_groups(request):
     user = request.user
+    print("owner groups user: " , user)
     person = Person.objects.get(user=user)
+    print("owner groups person: " , person)
     groups = Group.objects.filter(owner=person)
+    print("owner groups groups: ", groups)
     ser = GroupSer(groups, many="True")
     return Response(ser.data)
 
