@@ -67,4 +67,8 @@ export class Data {
     return this.http.get<any>(this.matchUrl() + 'current_user');
   }
 
+  syncUsers(): Observable<any> {
+    return this.http.post<any>(this.matchUrl() + 'sync_users', {})
+  }
+
 }

@@ -66,6 +66,12 @@ def admin_page(request):
     }
     return render(request, 'match/admin.html', context)
 
+@api_view(['POST'])
+def sync_users(request):
+    print("sync users")
+    control.sync_user_to_person()
+    return Response()
+
 @api_view(['GET'])
 def current_user(request):
     user = request.user

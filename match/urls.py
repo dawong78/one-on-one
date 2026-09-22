@@ -9,6 +9,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='match/login.html'), name='login'),
     re_path(r'^$', views.match_page, name='match'),
     path('logout', views.logout_user, name='logout'),
+    re_path(r'^sync_users$', views.sync_users, name="sync-users"),
     re_path(r'^current_user$', views.current_user, name="current-user"),
     re_path(r'^member_groups$', views.member_groups, name="member-groups"),
     re_path(r'^owner_groups$', views.owner_groups, name="owner-groups"),

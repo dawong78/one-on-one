@@ -31,7 +31,9 @@ export class App implements OnInit {
     this.editGroupForm = this.fb.group({
       selectedGroup: null
     });
-    this.refresh();
+    this.dataService.syncUsers().subscribe((data: any) => {
+      this.refresh();
+    });
   };
 
   refresh(): void {
